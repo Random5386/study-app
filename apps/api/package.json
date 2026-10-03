@@ -1,0 +1,44 @@
+{
+  "name": "@studyapp/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "StudyApp back end: Node.js + Express 5 + Prisma",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --conditions=development src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@studyapp/shared": "0.1.0",
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/supertest": "^7.2.1",
+    "pino-pretty": "^13.0.0",
+    "prisma": "^7.10.0",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}

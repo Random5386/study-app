@@ -1,0 +1,12 @@
+// The database, described as code. See docs/05-database-prisma.md.
+// Change it, then run `npm run db:migrate -- --name <what_changed>` from the repo root.
+// Models (User, Note, Deck, Flashcard, ...) are added phase by phase, starting in phase 2.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql" // the connection URL lives in prisma.config.ts
+}

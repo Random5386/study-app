@@ -1,0 +1,27 @@
+# Local services for development. Start: docker compose up -d   Stop: docker compose down
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: studyapp
+      POSTGRES_PASSWORD: studyapp_dev_password # local-only password; never reuse it anywhere real
+      POSTGRES_DB: studyapp
+    ports:
+      - '5432:5432' # your PC's port : the container's port
+    volumes:
+      - db-data:/var/lib/postgresql/data # keeps your data when the container restarts
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U studyapp']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - '1025:1025' # SMTP: the app sends email here
+      - '8025:8025' # web inbox: open http://localhost:8025
+
+volumes:
+  db-data:

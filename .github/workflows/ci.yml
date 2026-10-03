@@ -1,0 +1,57 @@
+# Runs on every push to main and every pull request (free for public repos).
+# See docs/16-git-ci-running.md.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres: # a throwaway database just for this run
+        image: postgres:17
+        env:
+          POSTGRES_USER: studyapp
+          POSTGRES_PASSWORD: studyapp_ci
+          POSTGRES_DB: studyapp_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U studyapp"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env: # CI-only values; nothing here is a real secret
+      APP_URL: http://localhost:5173
+      DATABASE_URL: postgresql://studyapp:studyapp_ci@localhost:5432/studyapp_test
+      TEST_DATABASE_URL: postgresql://studyapp:studyapp_ci@localhost:5432/studyapp_test
+      SESSION_SECRET: ci-only-session-secret-at-least-32-characters
+      ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+      GEMINI_API_KEY: not-used-tests-use-a-fake
+      GEMINI_MODEL: fake
+      GEMINI_FALLBACK_MODEL: fake
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci # clean install from package-lock.json (also runs `prisma generate`)
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scan the whole history, not just the latest commit
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

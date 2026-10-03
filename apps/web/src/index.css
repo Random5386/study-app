@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+/* Follow the operating system's light/dark setting. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+:root {
+  color-scheme: light dark;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
