@@ -1,6 +1,6 @@
 // The database, described as code. See docs/05-database-prisma.md.
 // Change it, then run `npm run db:migrate -- --name <what_changed>` from the repo root.
-// Models (User, Note, Deck, Flashcard, ...) are added phase by phase, starting in phase 2.
+// Phase 2 adds accounts and security. Study models (Note, Deck, Flashcard, ...) come in later phases.
 
 generator client {
   provider = "prisma-client"
@@ -9,4 +9,113 @@ generator client {
 
 datasource db {
   provider = "postgresql" // the connection URL lives in prisma.config.ts
+}
+
+// ---------------------------------------------------------------------------
+// Accounts and security (phase 2). See docs/06 and docs/07.
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  email           String    @unique // always stored lower-case
+  displayName     String
+  passwordHash    String // argon2id hash, never the password itself
+  emailVerifiedAt DateTime?
+  totpSecretEnc   String? // TOTP secret, encrypted with AES-256-GCM
+  totpLastStep    Int? // last accepted 30-second step, so a code can't be replayed
+  mfaEnabledAt    DateTime? // null = MFA off
+  failedLogins    Int       @default(0)
+  lockedUntil     DateTime?
+  aiDailyQuota    Int       @default(20)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  recoveryCodes RecoveryCode[]
+  authTokens    AuthToken[]
+  loginSessions LoginSession[]
+  auditLogs     AuditLog[]
+}
+
+/// One-time MFA backup codes. Only SHA-256 hashes are stored.
+model RecoveryCode {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+/// Links emailed to the user (verify email, reset password). Only hashes are stored.
+model AuthToken {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  userId    String        @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+}
+
+/// Server-side sessions, read and written by connect-pg-simple (the table layout it expects).
+model session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+}
+
+/// One row per signed-in device, for the "active sessions" page.
+model LoginSession {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sid        String   @unique // the express-session id
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum AuditEvent {
+  REGISTERED
+  EMAIL_VERIFIED
+  LOGIN
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  LOGOUT
+  MFA_ENABLED
+  MFA_DISABLED
+  MFA_FAILED
+  RECOVERY_CODE_USED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET
+  SESSIONS_REVOKED
+}
+
+/// Security history shown to the user on the Security page.
+model AuditLog {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  userId    String     @db.Uuid
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     AuditEvent
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime   @default(now())
+
+  @@index([userId, createdAt])
 }

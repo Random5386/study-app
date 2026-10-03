@@ -16,7 +16,11 @@ export default defineConfig({
       ...merged,
       NODE_ENV: 'test',
       DATABASE_URL: merged.TEST_DATABASE_URL ?? '',
+      PASSWORD_BREACH_CHECK: 'off', // tests must not call external services
+      LOG_LEVEL: 'silent',
     },
     fileParallelism: false, // API tests share one database
+    globalSetup: ['./tests/globalSetup.ts'],
+    testTimeout: 15_000, // argon2 hashing is deliberately slow
   },
 });

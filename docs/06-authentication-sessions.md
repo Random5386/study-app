@@ -1,5 +1,7 @@
 # 6. Authentication: passwords, login and sessions
 
+> **In the real code (phase 2):** see `apps/api/src/modules/auth/` and `apps/api/src/middleware/session.ts`. Compared with the snippets below, it also has `GET /api/auth/session` (always 200, so a signed-out visitor sees no red console errors), a login rate limit per IP + email, `signOutEverywhere()` after a password reset or change, and a `testOutbox` in `lib/mailer.ts` so tests can read emailed links. The tests in `apps/api/tests/auth.test.ts` prove each rule.
+
 ## What it is
 
 - **Authentication** = proving _who_ you are (email + password, then MFA).

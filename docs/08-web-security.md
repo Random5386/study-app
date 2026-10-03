@@ -1,5 +1,7 @@
 # 8. Web security: the OWASP Top 10 in practice
 
+> **In the real code (phase 2):** the rate limiters are created by `createRateLimiters()` in `apps/api/src/middleware/rateLimits.ts`, so each app instance has its own counters. Tests build the app with `createApp({ rateLimits: 'relaxed' })`, and one test uses the real limits to prove the 11th sign-in attempt is blocked. That's dependency injection, a good thing to mention in interviews.
+
 ## What it is
 
 The **OWASP Top 10** is the industry's list of the most critical web-app security risks. Knowing it — and being able to point at the code that defends against each one — is one of the strongest things a junior developer can show in an interview.

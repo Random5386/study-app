@@ -2,7 +2,7 @@
 
 > Working name. A full-stack TypeScript study platform: upload study guides, get AI summaries, make flashcards (by hand or with AI), review them with spaced repetition, and take Notion-style notes.
 
-**Status:** Phase 1 of 8. The React app, Express API and PostgreSQL database are set up and talking to each other. Accounts arrive in phase 2.
+**Status:** Phase 2 of 8. Accounts and security are done: sign-up with email confirmation, sign-in, two-factor sign-in, password reset, active sessions and security history. Study guides arrive in phase 3.
 
 | Layer     | Technology                                                                 |
 | --------- | -------------------------------------------------------------------------- |
@@ -35,10 +35,11 @@ Open `.env` and paste a free Gemini key after `GEMINI_API_KEY=`. Get one at http
 
 ```bash
 docker compose up -d     # starts PostgreSQL and Mailpit in the background
+npm run db:migrate       # creates the database tables
 npm run dev              # starts the API (port 3000) and the web app (port 5173)
 ```
 
-Open **http://localhost:5173**. The dashboard should show two green dots: API running, database connected.
+Open **http://localhost:5173** and create an account. The confirmation email lands in Mailpit at **http://localhost:8025** (nothing is really sent). Click the link, sign in, then try **Security** in the sidebar to turn on two-factor sign-in with Google or Microsoft Authenticator.
 
 ### Everyday commands
 
@@ -51,11 +52,11 @@ Open **http://localhost:5173**. The dashboard should show two green dots: API ru
 | `npm run format`      | Auto-format all files                                  |
 | `npm run build`       | Production build                                       |
 | `npm start`           | Run the production build on http://localhost:3000      |
-| `npm run db:migrate`  | Apply database changes (from phase 2)                  |
+| `npm run db:migrate`  | Apply database changes                                 |
 | `npm run db:studio`   | Browse the database in your browser                    |
 | `npm run db:backup`   | Save a database backup to `backups/`                   |
 | `docker compose down` | Stop the database (your data is kept)                  |
-| http://localhost:8025 | Mailpit: see emails the app "sends" (from phase 2)     |
+| http://localhost:8025 | Mailpit: see emails the app "sends"                    |
 
 ### Troubleshooting
 
@@ -63,6 +64,8 @@ Open **http://localhost:5173**. The dashboard should show two green dots: API ru
 - **Dashboard says "Database: down"**: start Docker Desktop, then `docker compose up -d`.
 - **Port 5432 already in use**: another PostgreSQL is installed on your PC. Stop it, or change the left number in `docker-compose.yml` to `'5433:5432'` and use port 5433 in `.env`.
 - **API tests fail with a connection error**: the database must be running (`docker compose up -d`).
+- **"The table `User` does not exist"**: run `npm run db:migrate`.
+- **No email arrived**: open Mailpit at http://localhost:8025. If registering shows "Something went wrong", Mailpit isn't running: `docker compose up -d`.
 
 ## Project layout
 
@@ -82,4 +85,10 @@ study-app/
 
 ## Security
 
-Passwords hashed with Argon2id, server-side sessions, TOTP multi-factor authentication, CSRF protection, rate limiting and per-user access control tested automatically (from phase 2). Secrets live only in the git-ignored `.env`. The root `package.json` `overrides` pin two patched sub-dependencies of the Prisma CLI so `npm audit` stays clean. See [docs/08-web-security.md](docs/08-web-security.md).
+- Passwords hashed with **Argon2id**; new passwords checked against the Pwned Passwords breach list (k-anonymity, only 5 hash characters leave the server)
+- **Server-side sessions** in PostgreSQL with `HttpOnly`, `SameSite=Strict` cookies; a new session id at every sign-in (no session fixation)
+- **TOTP two-factor sign-in** with AES-256-GCM-encrypted secrets, replay protection and 10 hashed one-time recovery codes
+- **CSRF tokens** on every change; **rate limits** and a 15-minute **account lock** after 5 wrong passwords
+- No account enumeration: sign-up and password reset give the same answer whether or not an email exists
+- **Active sessions** page with remote sign-out, and a **security history** of every sign-in and change
+- 40 API tests prove these rules, including that one user can't touch another user's sessions Secrets live only in the git-ignored `.env`. The root `package.json` `overrides` pin two patched sub-dependencies of the Prisma CLI so `npm audit` stays clean. See [docs/08-web-security.md](docs/08-web-security.md).

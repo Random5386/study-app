@@ -7,11 +7,23 @@ import express from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
+import { csrfProtection } from './middleware/csrf.js';
 import { apiNotFound, errorHandler } from './middleware/errorHandler.js';
+import { createRateLimiters, type RateLimitMode } from './middleware/rateLimits.js';
+import { requireAuth } from './middleware/requireAuth.js';
+import { sessionMiddleware } from './middleware/session.js';
+import { createAccountRouter } from './modules/account/account.routes.js';
+import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 
-export function createApp() {
+export type AppOptions = {
+  /** 'relaxed' multiplies every rate limit by 1000. Only tests use it. */
+  rateLimits?: RateLimitMode;
+};
+
+export function createApp(options: AppOptions = {}) {
   const app = express();
+  const limits = createRateLimiters(options.rateLimits);
 
   app.set('trust proxy', 1); // correct client IPs and secure cookies if deployed behind a proxy later
   app.use(helmet()); // security headers (docs/08-web-security.md)
@@ -19,8 +31,12 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' })); // parse JSON bodies, reject huge ones
 
   // ---- API routes ----
-  app.use('/api/health', healthRouter);
-  // Later phases add: /api/auth, /api/notes, /api/documents, /api/decks, /api/study
+  app.use('/api/health', healthRouter); // no session needed
+  app.use('/api', sessionMiddleware); // loads req.session from PostgreSQL
+  app.use('/api', csrfProtection); // blocks forged POST/PATCH/DELETE requests
+  app.use('/api/auth', createAuthRouter(limits)); // public: register, login, ...
+  app.use('/api/account', requireAuth, createAccountRouter(limits)); // signed-in users only
+  // Later phases add: /api/notes, /api/documents, /api/decks, /api/study
   app.use('/api', apiNotFound); // unknown /api/... paths → JSON 404
 
   // ---- The React app (only after `npm run build`; in development Vite serves it) ----

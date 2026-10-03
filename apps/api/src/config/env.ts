@@ -23,6 +23,8 @@ const envSchema = z.object({
   SMTP_HOST: z.string().min(1),
   SMTP_PORT: z.coerce.number().int().positive(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  // Check new passwords against the free Pwned Passwords breach list (turned off in tests).
+  PASSWORD_BREACH_CHECK: z.enum(['on', 'off']).default('on'),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -1,5 +1,7 @@
 # 7. Multi-factor authentication (TOTP)
 
+> **In the real code (phase 2):** see `apps/api/src/modules/account/mfa.service.ts`. The "stretch" replay protection from the end of this page is already built: `User.totpLastStep` records the last accepted 30-second step, and an atomic `updateMany` refuses a code from the same step twice. Tests: `apps/api/tests/mfa.test.ts`.
+
 ## What it is
 
 **MFA** asks for a second proof of identity beyond the password. StudyApp uses **TOTP** (Time-based One-Time Password) — the 6-digit codes in Google Authenticator or Microsoft Authenticator.
