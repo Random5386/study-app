@@ -36,6 +36,7 @@ Open `.env` and paste a free Gemini key after `GEMINI_API_KEY=`. Get one at http
 ```bash
 docker compose up -d     # starts PostgreSQL and Mailpit in the background
 npm run db:migrate       # creates the database tables
+npm run db:seed          # creates the test account (see below)
 npm run dev              # starts the API (port 3000) and the web app (port 5173)
 ```
 
@@ -53,6 +54,7 @@ Open **http://localhost:5173** and create an account. The confirmation email lan
 | `npm run build`       | Production build                                       |
 | `npm start`           | Run the production build on http://localhost:3000      |
 | `npm run db:migrate`  | Apply database changes                                 |
+| `npm run db:seed`     | Create or reset the test account                       |
 | `npm run db:studio`   | Browse the database in your browser                    |
 | `npm run db:backup`   | Save a database backup to `backups/`                   |
 | `docker compose down` | Stop the database (your data is kept)                  |
@@ -66,6 +68,15 @@ Open **http://localhost:5173** and create an account. The confirmation email lan
 - **API tests fail with a connection error**: the database must be running (`docker compose up -d`).
 - **"The table `User` does not exist"**: run `npm run db:migrate`.
 - **No email arrived**: open Mailpit at http://localhost:8025. If registering shows "Something went wrong", Mailpit isn't running: `docker compose up -d`.
+
+## Test account
+
+`npm run db:seed` creates a ready-to-use account with sample subjects and study guides:
+
+- **Email:** the `DEMO_EMAIL` value in `.env` (default `demo@studyapp.local`)
+- **Password:** the `DEMO_PASSWORD` value in `.env` (`npm run setup` generates one)
+
+Run `npm run db:seed` again any time to reset it: it restores the password, unlocks the account and turns two-factor sign-in off. Your own uploads in that account are kept. The password only lives in your git-ignored `.env`.
 
 ## Project layout
 

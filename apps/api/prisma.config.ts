@@ -9,6 +9,7 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'tsx --conditions=development prisma/seed.ts', // also run by `prisma migrate reset`
   },
   datasource: {
     // `prisma generate` (run on every npm install) doesn't need a database,

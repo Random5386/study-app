@@ -34,7 +34,7 @@ export default tseslint.config(
   },
   {
     // Command-line scripts are allowed to print
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'apps/api/prisma/seed.ts'],
     rules: { 'no-console': 'off' },
   },
   {

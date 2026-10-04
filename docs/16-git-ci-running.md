@@ -130,6 +130,8 @@ Add a CI badge to the README: `![CI](https://github.com/<you>/study-app/actions/
 
 ### The demo account — `apps/api/prisma/seed.ts` (shape)
 
+> **In the real code:** the logic is in `apps/api/src/dev/seedDemo.ts` (tested in `tests/seed.test.ts`), the sample study guides are in `src/dev/sampleContent.ts`, and the email and password come from `DEMO_EMAIL` / `DEMO_PASSWORD` in `.env`. Re-running it resets the password, unlocks the account and turns MFA off, but never deletes your uploads.
+
 ```ts
 const email = 'demo@studyapp.local';
 const password = process.env.DEMO_PASSWORD ?? 'StudyApp-demo-2026!'; // local-only demo password
