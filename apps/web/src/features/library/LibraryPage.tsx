@@ -7,6 +7,7 @@ import { Search } from 'lucide-react';
 import { Alert } from '../../components/ui/Alert';
 import { Badge } from '../../components/ui/Badge';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { useLevelWords } from '../../components/useLevelWords';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { inputClass } from '../../components/ui/TextField';
 import { errorMessage } from '../../lib/api';
@@ -43,13 +44,14 @@ export function LibraryPage() {
 
   const documents = useDocuments({ subjectId, q: q || undefined, tag });
   const subjects = useSubjects();
+  const words = useLevelWords();
   const stats = useLibraryStats();
   const subjectName = (id: string | null) => subjects.data?.find((s) => s.id === id)?.name;
   const heading =
     subjectId === 'none'
-      ? 'Not in a subject'
+      ? `Not in a ${words.subject}`
       : subjectId
-        ? (subjectName(subjectId) ?? 'Subject')
+        ? (subjectName(subjectId) ?? words.Subject)
         : 'All documents';
 
   return (
@@ -57,7 +59,7 @@ export function LibraryPage() {
       <PageHeader
         emoji="📚"
         title="Study guides"
-        description="Everything you upload lives here. Sort guides into subjects and tag them for exams."
+        description={`Everything you upload lives here. Sort guides into ${words.subjects} and tag them for ${words.test}s.`}
       />
 
       <div className="flex flex-col gap-8 lg:flex-row">

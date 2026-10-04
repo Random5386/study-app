@@ -2,7 +2,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { displayNameSchema } from '@studyapp/shared';
+import { describeLevel, displayNameSchema } from '@studyapp/shared';
+import { useState } from 'react';
+import { StudyLevelPicker, type StudyLevelValue } from '../../components/StudyLevelPicker';
 import { Alert } from '../../components/ui/Alert';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
@@ -75,6 +77,8 @@ export function ProfilePage() {
         </form>
       </Card>
 
+      <StudyLevelCard />
+
       <Card
         title="Email address"
         description="Your email is how you sign in. Changing it is coming in a later version."
@@ -82,5 +86,39 @@ export function ProfilePage() {
         <p className="rounded-xl border-2 border-line bg-raised px-3.5 py-2.5 text-[0.95rem]">{me.email}</p>
       </Card>
     </>
+  );
+}
+
+/** Study level: saved as soon as you pick, so there's no extra Save button to forget. */
+function StudyLevelCard() {
+  const { data: me } = useMe();
+  const update = useUpdateProfile();
+  // Local copy while saving, so the choice shows at once.
+  const [draft, setDraft] = useState<StudyLevelValue | null>(null);
+  if (!me) return null;
+  const value = draft ?? { studyLevel: me.studyLevel, schoolGrade: me.schoolGrade };
+
+  const change = (next: StudyLevelValue) => {
+    if (!next.studyLevel) return;
+    setDraft(next);
+    update.mutate(
+      { studyLevel: next.studyLevel, schoolGrade: next.schoolGrade },
+      { onSettled: () => setDraft(null) },
+    );
+  };
+
+  return (
+    <Card
+      title="Study level"
+      description="AI summaries (and later, flashcards) are written to match. Summaries you made at another level are kept."
+    >
+      <div className="space-y-4">
+        {update.isError && <Alert tone="error">{errorMessage(update.error)}</Alert>}
+        <StudyLevelPicker value={value} onChange={change} />
+        <p className="text-sm text-muted" role="status">
+          {update.isPending ? 'Saving…' : `Current level: ${describeLevel(me.studyLevel, me.schoolGrade)}`}
+        </p>
+      </div>
+    </Card>
   );
 }

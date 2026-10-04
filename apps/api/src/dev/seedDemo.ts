@@ -24,7 +24,13 @@ export async function seedDemoAccount({
 
   const user = await prisma.user.upsert({
     where: { email: normalisedEmail },
-    create: { email: normalisedEmail, displayName, passwordHash, emailVerifiedAt: new Date() },
+    create: {
+      email: normalisedEmail,
+      displayName,
+      passwordHash,
+      emailVerifiedAt: new Date(),
+      studyLevel: 'UNIVERSITY',
+    },
     update: {
       passwordHash,
       emailVerifiedAt: new Date(),

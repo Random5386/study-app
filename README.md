@@ -2,7 +2,7 @@
 
 > Working name. A full-stack TypeScript study platform: upload study guides, get AI summaries, make flashcards (by hand or with AI), review them with spaced repetition, and take Notion-style notes.
 
-**Status:** Phase 4 of 8. Done so far: accounts and security (phase 2), the study guide library (phase 3) and **AI summaries with Google Gemini** (phase 4): brief, detailed or bullet-point summaries with key terms, made in a background job, cached, and limited per user. The app has a "calm + playful" design (a Notion-style layout with Duolingo-style chunky buttons and friendly copy), light and dark themes, and settings under the profile menu, including data export and account deletion. Flashcards arrive in phase 5.
+**Status:** Phase 4 of 8. Done so far: accounts and security (phase 2), the study guide library (phase 3) and **AI summaries with Google Gemini** (phase 4): brief, detailed or bullet-point summaries with key terms, made in a background job, cached, limited per user, and **pitched at your study level** (high school with a grade, college or TVET, university, or postgraduate). The app has a "calm + playful" design (a Notion-style layout with Duolingo-style chunky buttons and friendly copy), light and dark themes, and settings under the profile menu, including data export and account deletion. Flashcards arrive in phase 5.
 
 ![StudyApp home page: greeting, library stats and recent study guides](docs/images/home.png)
 

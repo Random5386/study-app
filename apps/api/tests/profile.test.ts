@@ -14,6 +14,20 @@ describe('updating the profile', () => {
     expect(session.body.user.displayName).toBe('Thandi');
   });
 
+  it('changes the study level, keeping a grade only for high school', async () => {
+    const { browser } = await signedInUser();
+    const school = await browser
+      .patch('/api/account/profile', { studyLevel: 'HIGH_SCHOOL', schoolGrade: 11 })
+      .expect(200);
+    expect(school.body).toMatchObject({ studyLevel: 'HIGH_SCHOOL', schoolGrade: 11 });
+
+    const college = await browser.patch('/api/account/profile', { studyLevel: 'COLLEGE' }).expect(200);
+    expect(college.body).toMatchObject({ studyLevel: 'COLLEGE', schoolGrade: null });
+
+    await browser.patch('/api/account/profile', { studyLevel: 'KINDERGARTEN' }).expect(400);
+    await browser.patch('/api/account/profile', { studyLevel: 'HIGH_SCHOOL', schoolGrade: 7 }).expect(400);
+  });
+
   it('rejects an empty or too-long name', async () => {
     const { browser } = await signedInUser();
     await browser.patch('/api/account/profile', { displayName: '   ' }).expect(400);

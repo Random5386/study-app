@@ -64,7 +64,12 @@ export function tokenFromEmail(to: string, path: string) {
 export async function registerVerifiedUser(email = uniqueEmail()) {
   const browser = await newBrowser();
   await browser
-    .post('/api/auth/register', { email, displayName: 'Test Student', password: PASSWORD })
+    .post('/api/auth/register', {
+      email,
+      displayName: 'Test Student',
+      password: PASSWORD,
+      studyLevel: 'UNIVERSITY',
+    })
     .expect(202);
   await browser.post('/api/auth/verify-email', { token: tokenFromEmail(email, '/verify-email') }).expect(200);
   return email;

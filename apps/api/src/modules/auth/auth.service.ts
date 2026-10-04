@@ -32,6 +32,8 @@ export function toPublicUser(user: User): PublicUser {
     displayName: user.displayName,
     emailVerified: user.emailVerifiedAt !== null,
     mfaEnabled: user.mfaEnabledAt !== null,
+    studyLevel: user.studyLevel,
+    schoolGrade: user.schoolGrade,
     createdAt: user.createdAt.toISOString(),
   };
 }
@@ -80,6 +82,8 @@ export const authService = {
           email: input.email,
           displayName: input.displayName,
           passwordHash: await hashPassword(input.password),
+          studyLevel: input.studyLevel,
+          schoolGrade: input.schoolGrade ?? null,
         },
       });
       await audit(user.id, 'REGISTERED', req);

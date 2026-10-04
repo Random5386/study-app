@@ -39,6 +39,8 @@ export const accountService = {
       select: {
         email: true,
         displayName: true,
+        studyLevel: true,
+        schoolGrade: true,
         emailVerifiedAt: true,
         mfaEnabledAt: true,
         createdAt: true,
@@ -57,7 +59,14 @@ export const accountService = {
             subject: { select: { name: true } },
             tags: { select: { tag: { select: { name: true } } } },
             summaries: {
-              select: { style: true, points: true, keyTerms: true, model: true, createdAt: true },
+              select: {
+                style: true,
+                audience: true,
+                points: true,
+                keyTerms: true,
+                model: true,
+                createdAt: true,
+              },
             },
           },
         },

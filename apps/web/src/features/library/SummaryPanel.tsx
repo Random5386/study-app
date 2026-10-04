@@ -1,14 +1,23 @@
 // The "AI summary" card on a document page: pick a style, ask Gemini, read the result.
 // AI output is shown as plain text (React escapes it), never as HTML, so a summary can't
 // inject scripts into the page. See docs/11-ai-gemini.md.
-import { SUMMARY_STYLE_LABELS, SUMMARY_STYLES, type SummaryDto, type SummaryStyle } from '@studyapp/shared';
+import {
+  describeAudience,
+  describeLevel,
+  SUMMARY_STYLE_LABELS,
+  SUMMARY_STYLES,
+  type SummaryDto,
+  type SummaryStyle,
+} from '@studyapp/shared';
 import { Check, Copy, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { Alert } from '../../components/ui/Alert';
 import { Button } from '../../components/ui/Button';
 import { Card, IconTile } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { errorMessage } from '../../lib/api';
+import { useMe } from '../auth/useMe';
 import { formatDate } from './format';
 import { useDocumentSummaries, useRequestSummary } from './useSummaries';
 
@@ -58,8 +67,8 @@ function SummaryView({ summary }: { summary: SummaryDto }) {
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted">
         <span>
-          Written by {summary.model} on {formatDate(summary.createdAt)}. AI can make mistakes, so check it
-          against your guide.
+          Written for {describeAudience(summary.audience)} by {summary.model} on{' '}
+          {formatDate(summary.createdAt)}. AI can make mistakes, so check it against your guide.
         </span>
         <Button variant="ghost" size="sm" onClick={() => void copy()}>
           {copied ? <Check aria-hidden className="size-4" /> : <Copy aria-hidden className="size-4" />}
@@ -89,6 +98,7 @@ function Writing() {
 }
 
 export function SummaryPanel({ documentId, ready }: { documentId: string; ready: boolean }) {
+  const { data: me } = useMe();
   const summaries = useDocumentSummaries(documentId);
   const request = useRequestSummary(documentId);
   const [chosen, setChosen] = useState<SummaryStyle | null>(null);
@@ -159,7 +169,15 @@ export function SummaryPanel({ documentId, ready }: { documentId: string; ready:
                     you&apos;ve already made still open.
                   </Alert>
                 )}
-                <p className="text-sm text-muted">{SUMMARY_STYLE_LABELS[style].hint}.</p>
+                <p className="text-sm text-muted">
+                  {SUMMARY_STYLE_LABELS[style].hint}, written for{' '}
+                  <Link to="/settings/profile" className="font-semibold text-link hover:underline">
+                    {me?.studyLevel
+                      ? describeLevel(me.studyLevel, me.schoolGrade)
+                      : 'any level (choose yours)'}
+                  </Link>
+                  .
+                </p>
                 <Button onClick={() => request.mutate(style)} disabled={!ready || left === 0}>
                   <Sparkles aria-hidden className="size-4" />
                   {job?.status === 'FAILED' ? 'Try again' : `Summarise: ${SUMMARY_STYLE_LABELS[style].label}`}

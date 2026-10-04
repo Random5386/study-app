@@ -69,6 +69,7 @@ Short definitions of every term used in this guide. The number in brackets is th
 | **SQL injection**        | Attacker input changing a database query; prevented by parameterised queries. (05, 08)                                |
 | **Status code**          | The number in an HTTP response (200, 404, 500…). (01)                                                                 |
 | **Streak (mini)**        | How many flashcards you've answered correctly in a row during one review session. (12)                                |
+| **Study level**          | High school (with a grade), College/TVET, University or Postgraduate. AI output is written to match it. (11)          |
 | **TanStack Query**       | React library for fetching, caching and updating server data. (13)                                                    |
 | **Transaction**          | Database changes that all succeed or all fail. (05)                                                                   |
 | **Type guard**           | A check that narrows a TypeScript type (`ext is AllowedExt`). (09)                                                    |

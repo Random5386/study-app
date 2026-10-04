@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from 'react';
 import { SUBJECT_COLOURS, type SubjectColour } from '@studyapp/shared';
 import { Button } from '../../components/ui/Button';
+import { useLevelWords } from '../../components/useLevelWords';
 import { errorMessage } from '../../lib/api';
 import { SUBJECT_DOT } from './format';
 import { useCreateSubject, useDeleteSubject, useSubjects } from './useLibrary';
@@ -10,6 +11,7 @@ type Props = { selected?: string; onSelect: (subjectId?: string) => void };
 
 export function SubjectList({ selected, onSelect }: Props) {
   const subjects = useSubjects();
+  const words = useLevelWords(); // "subject" at school, "module" at university
   const create = useCreateSubject();
   const remove = useDeleteSubject();
   const [adding, setAdding] = useState(false);
@@ -36,15 +38,17 @@ export function SubjectList({ selected, onSelect }: Props) {
     }`;
 
   return (
-    <nav aria-label="Subjects" className="space-y-1">
+    <nav aria-label={words.Subjects} className="space-y-1">
       <button type="button" className={item(!selected)} onClick={() => onSelect(undefined)}>
         <span aria-hidden>🗂️</span> All documents
       </button>
       <button type="button" className={item(selected === 'none')} onClick={() => onSelect('none')}>
-        <span aria-hidden>📥</span> Not in a subject
+        <span aria-hidden>📥</span> Not in a {words.subject}
       </button>
 
-      <p className="px-2.5 pt-4 pb-1 text-xs font-bold tracking-wide text-muted uppercase">Subjects</p>
+      <p className="px-2.5 pt-4 pb-1 text-xs font-bold tracking-wide text-muted uppercase">
+        {words.Subjects}
+      </p>
       {subjects.isError && <p className="px-2 text-xs text-danger-600">{errorMessage(subjects.error)}</p>}
       {subjects.data?.map((s) => (
         <div key={s.id} className="group flex items-center">
@@ -57,8 +61,8 @@ export function SubjectList({ selected, onSelect }: Props) {
           </button>
           <button
             type="button"
-            aria-label={`Delete subject ${s.name}`}
-            title="Delete subject (its documents are kept)"
+            aria-label={`Delete ${words.subject} ${s.name}`}
+            title={`Delete ${words.subject} (its documents are kept)`}
             className="invisible ml-1 rounded-md px-1.5 text-lg leading-none text-muted group-hover:visible hover:bg-hover hover:text-danger-600 focus:visible"
             onClick={() => {
               remove.mutate(s.id);
@@ -74,8 +78,8 @@ export function SubjectList({ selected, onSelect }: Props) {
         <form onSubmit={submit} className="space-y-2.5 rounded-xl border-2 border-line bg-surface p-2.5">
           <input
             autoFocus
-            aria-label="Subject name"
-            placeholder="e.g. Biology 101"
+            aria-label={`${words.Subject} name`}
+            placeholder={words.subject === 'module' ? 'e.g. BIO101: Cell Biology' : 'e.g. Life Sciences'}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-lg border-2 border-line bg-raised px-2.5 py-1.5 text-sm focus:border-focus focus:outline-none"
@@ -109,7 +113,7 @@ export function SubjectList({ selected, onSelect }: Props) {
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm text-muted hover:bg-hover hover:text-ink"
           onClick={() => setAdding(true)}
         >
-          + New subject
+          + New {words.subject}
         </button>
       )}
     </nav>

@@ -24,6 +24,8 @@ describe('registration and email verification', () => {
         email: `  ${email.toUpperCase()} `,
         displayName: 'Ada',
         password: PASSWORD,
+        studyLevel: 'HIGH_SCHOOL',
+        schoolGrade: '10', // forms send strings; the schema turns it into a number
       })
       .expect(202);
 
@@ -31,6 +33,7 @@ describe('registration and email verification', () => {
     const user = await prisma.user.findUniqueOrThrow({ where: { email } });
     expect(user.passwordHash).toMatch(/^\$argon2id\$/);
     expect(user.emailVerifiedAt).toBeNull();
+    expect(user).toMatchObject({ studyLevel: 'HIGH_SCHOOL', schoolGrade: 10 });
 
     // Can't sign in before clicking the link.
     const early = await browser.post('/api/auth/login', { email, password: PASSWORD }).expect(403);
@@ -43,7 +46,14 @@ describe('registration and email verification', () => {
     expect(body.mfaRequired).toBe(false);
 
     const me = await signedIn.agent.get('/api/auth/me').expect(200);
-    expect(me.body).toMatchObject({ email, displayName: 'Ada', emailVerified: true, mfaEnabled: false });
+    expect(me.body).toMatchObject({
+      email,
+      displayName: 'Ada',
+      emailVerified: true,
+      mfaEnabled: false,
+      studyLevel: 'HIGH_SCHOOL',
+      schoolGrade: 10,
+    });
     expect(JSON.stringify(me.body)).not.toMatch(/passwordHash|totp/);
   });
 
@@ -51,7 +61,12 @@ describe('registration and email verification', () => {
     const email = await registerVerifiedUser();
     const browser = await newBrowser();
     const res = await browser
-      .post('/api/auth/register', { email, displayName: 'Impostor', password: PASSWORD })
+      .post('/api/auth/register', {
+        email,
+        displayName: 'Impostor',
+        password: PASSWORD,
+        studyLevel: 'COLLEGE',
+      })
       .expect(202);
     expect(res.body.message).toMatch(/Check your inbox/);
     expect(lastEmailTo(email).subject).toMatch(/tried to sign up/);
@@ -60,10 +75,33 @@ describe('registration and email verification', () => {
   it('verification links work only once', async () => {
     const email = uniqueEmail();
     const browser = await newBrowser();
-    await browser.post('/api/auth/register', { email, displayName: 'Bo', password: PASSWORD }).expect(202);
+    await browser
+      .post('/api/auth/register', { email, displayName: 'Bo', password: PASSWORD, studyLevel: 'POSTGRAD' })
+      .expect(202);
     const token = tokenFromEmail(email, '/verify-email');
     await browser.post('/api/auth/verify-email', { token }).expect(200);
     await browser.post('/api/auth/verify-email', { token }).expect(400);
+  });
+
+  it('needs a study level, and only keeps a grade for high school', async () => {
+    const browser = await newBrowser();
+    const base = { displayName: 'Cy', password: PASSWORD };
+    await browser.post('/api/auth/register', { ...base, email: uniqueEmail() }).expect(400);
+    await browser
+      .post('/api/auth/register', {
+        ...base,
+        email: uniqueEmail(),
+        studyLevel: 'HIGH_SCHOOL',
+        schoolGrade: 13,
+      })
+      .expect(400);
+
+    const email = uniqueEmail();
+    await browser
+      .post('/api/auth/register', { ...base, email, studyLevel: 'UNIVERSITY', schoolGrade: 11 })
+      .expect(202);
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+    expect(user).toMatchObject({ studyLevel: 'UNIVERSITY', schoolGrade: null });
   });
 
   it('rejects short passwords and invalid emails', async () => {

@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import {
+  normaliseGrade,
+  schoolGradeSchema,
+  studyLevelFields,
+  studyLevelSchema,
+  type StudyLevel,
+} from './studyLevel.js';
 
 // Rules for account data. The React forms and the Express routes both use these,
 // so the browser and the server always agree. See docs/06-authentication-sessions.md.
@@ -35,11 +42,14 @@ export const mfaCodeSchema = z
 /** Random token from an emailed link. */
 export const linkTokenSchema = z.string().trim().min(20).max(200);
 
-export const registerSchema = z.object({
-  email: emailSchema,
-  displayName: displayNameSchema,
-  password: passwordSchema,
-});
+export const registerSchema = z
+  .object({
+    email: emailSchema,
+    displayName: displayNameSchema,
+    password: passwordSchema,
+    ...studyLevelFields,
+  })
+  .transform(normaliseGrade);
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
@@ -81,7 +91,15 @@ export const mfaDisableSchema = z.object({
 export type MfaDisableInput = z.infer<typeof mfaDisableSchema>;
 
 /** Settings → Profile. Only these fields can be changed here (anything else in the body is dropped). */
-export const updateProfileSchema = z.object({ displayName: displayNameSchema });
+export const updateProfileSchema = z
+  .object({
+    displayName: displayNameSchema,
+    studyLevel: studyLevelSchema,
+    schoolGrade: schoolGradeSchema.nullable(),
+  })
+  .partial()
+  .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
+  .transform(normaliseGrade);
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 /** Deleting your account needs your password, a typed confirmation, and your MFA code if it's on. */
@@ -101,6 +119,8 @@ export type PublicUser = {
   displayName: string;
   emailVerified: boolean;
   mfaEnabled: boolean;
+  studyLevel: StudyLevel | null; // null = not chosen yet
+  schoolGrade: number | null;
   createdAt: string;
 };
 

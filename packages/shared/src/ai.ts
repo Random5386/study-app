@@ -37,6 +37,7 @@ export type SummaryOutput = z.infer<typeof summaryOutputSchema>;
 export type SummaryDto = {
   id: string;
   style: SummaryStyle;
+  audience: string; // who it was written for, e.g. "HIGH_SCHOOL:10" (see describeAudience)
   points: string[];
   keyTerms: KeyTerm[];
   model: string;

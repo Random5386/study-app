@@ -7,6 +7,8 @@ export const testUser: PublicUser = {
   displayName: 'Ada',
   emailVerified: true,
   mfaEnabled: true,
+  studyLevel: 'UNIVERSITY',
+  schoolGrade: null,
   createdAt: '2026-01-15T10:00:00.000Z',
 };
 

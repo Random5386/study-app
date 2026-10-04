@@ -10,6 +10,7 @@ import { ApiError, errorMessage } from '../../lib/api';
 import { fileEmoji, fileKind, formatBytes, formatDate } from './format';
 import { StatusBadge } from './StatusBadge';
 import { SummaryPanel } from './SummaryPanel';
+import { useLevelWords } from '../../components/useLevelWords';
 import {
   useDeleteDocument,
   useDocument,
@@ -23,6 +24,7 @@ export function DocumentPage() {
   const navigate = useNavigate();
   const doc = useDocument(id);
   const subjects = useSubjects();
+  const words = useLevelWords();
   const update = useUpdateDocument(id);
   const remove = useDeleteDocument();
   const retry = useRetryDocument(id);
@@ -92,7 +94,7 @@ export function DocumentPage() {
         </dd>
 
         <dt className="text-muted">
-          <label htmlFor="doc-subject">Subject</label>
+          <label htmlFor="doc-subject">{words.Subject}</label>
         </dt>
         <dd>
           <select
@@ -101,7 +103,7 @@ export function DocumentPage() {
             onChange={(e) => update.mutate({ subjectId: e.target.value || null })}
             className="-ml-2 max-w-full rounded-lg bg-transparent px-2 py-1 hover:bg-hover focus:bg-hover"
           >
-            <option value="">Not in a subject</option>
+            <option value="">Not in a {words.subject}</option>
             {subjects.data?.map((sub) => (
               <option key={sub.id} value={sub.id}>
                 {sub.name}

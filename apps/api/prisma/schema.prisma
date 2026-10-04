@@ -28,6 +28,8 @@ model User {
   failedLogins    Int       @default(0)
   lockedUntil     DateTime?
   aiDailyQuota    Int       @default(20)
+  studyLevel      StudyLevel? // null = not chosen yet (accounts made before study levels existed)
+  schoolGrade     Int? // 8 to 12, only for HIGH_SCHOOL
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -39,6 +41,14 @@ model User {
   documents     Document[]
   tags          Tag[]
   aiJobs        AiJob[]
+}
+
+/// What the student is studying at. AI features pitch their language and depth at this level.
+enum StudyLevel {
+  HIGH_SCHOOL
+  COLLEGE // college or TVET
+  UNIVERSITY // undergraduate
+  POSTGRAD // Honours, Master's, PhD
 }
 
 /// One-time MFA backup codes. Only SHA-256 hashes are stored.
@@ -226,12 +236,13 @@ model Summary {
   document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
   style         SummaryStyle
   promptVersion String // e.g. "summary.v1"; a new prompt version means a fresh summary
+  audience      String       @default("GENERAL") // who it was written for, e.g. "HIGH_SCHOOL:10" or "UNIVERSITY"
   points        Json // string[]: paragraphs, or bullet points for the BULLETS style
   keyTerms      Json // { term, definition }[]
   model         String // which Gemini model wrote it
   createdAt     DateTime     @default(now())
 
-  @@unique([documentId, style, promptVersion])
+  @@unique([documentId, style, promptVersion, audience])
 }
 
 enum AiJobType {

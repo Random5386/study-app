@@ -3,17 +3,20 @@
 import { summaryOutputSchema, type SummaryOutput, type SummaryStyle } from '@studyapp/shared';
 import { chunkText } from '../lib/chunkText.js';
 import type { AiClient } from './aiClient.js';
+import { audienceDescription } from './audience.js';
 import { asDocumentText, fillPrompt, loadPrompt } from './prompts.js';
 
-export const SUMMARY_PROMPT_VERSION = 'summary.v1';
+export const SUMMARY_PROMPT_VERSION = 'summary.v2'; // v2: written for the student's study level
 export const MAX_CHUNKS = 8; // about 1 million characters; enough for any study guide we accept
 
 export type SummariseResult = SummaryOutput & { model: string; inputTokens: number; outputTokens: number };
 
+/** `audience` says who it's for, from audienceDescription() (e.g. "a Grade 10 high school learner..."). */
 export async function summariseText(
   ai: AiClient,
   text: string,
   style: SummaryStyle,
+  audience = audienceDescription(null, null),
 ): Promise<SummariseResult> {
   const system = loadPrompt('system.v1');
   let inputTokens = 0;
@@ -23,7 +26,7 @@ export async function summariseText(
   const ask = async (material: string, s: SummaryStyle) => {
     const res = await ai.generateJson({
       system,
-      prompt: fillPrompt(SUMMARY_PROMPT_VERSION, { style: s, text: asDocumentText(material) }),
+      prompt: fillPrompt(SUMMARY_PROMPT_VERSION, { audience, style: s, text: asDocumentText(material) }),
       schema: summaryOutputSchema,
     });
     inputTokens += res.inputTokens;

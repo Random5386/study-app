@@ -2,11 +2,13 @@
 // Safe to run twice: a finished job is skipped, and the summary is saved with an upsert.
 import type { Prisma } from '../generated/prisma/client.js';
 import { PermanentAiError, TemporaryAiError } from '../ai/aiClient.js';
+import { audienceDescription } from '../ai/audience.js';
 import { getAiClient } from '../ai/index.js';
 import { SUMMARY_PROMPT_VERSION, summariseText } from '../ai/summarise.js';
 import { prisma } from '../db/prisma.js';
 import { logger } from '../lib/logger.js';
 import type { SummaryStyle } from '@studyapp/shared';
+import type { SummaryJobInput } from '../modules/summaries/summaries.service.js';
 
 export type SummariseData = { aiJobId: string };
 
@@ -19,7 +21,9 @@ const fail = (id: string, error: string) =>
 export async function handleSummarise({ aiJobId }: SummariseData) {
   const job = await prisma.aiJob.findUnique({ where: { id: aiJobId } });
   if (!job || job.status === 'DONE' || job.status === 'FAILED') return;
-  const { style } = job.input as { style: SummaryStyle };
+  const input = job.input as Partial<SummaryJobInput> & { style: SummaryStyle };
+  const { style } = input;
+  const audience = input.audience ?? 'GENERAL';
 
   const doc = job.documentId
     ? await prisma.document.findUnique({
@@ -39,9 +43,15 @@ export async function handleSummarise({ aiJobId }: SummariseData) {
 
   await prisma.aiJob.update({ where: { id: aiJobId }, data: { status: 'RUNNING' } });
   try {
-    const result = await summariseText(ai, doc.extractedText, style);
+    const reader = audienceDescription(input.studyLevel ?? null, input.schoolGrade ?? null);
+    const result = await summariseText(ai, doc.extractedText, style, reader);
     const where = {
-      documentId_style_promptVersion: { documentId: doc.id, style, promptVersion: SUMMARY_PROMPT_VERSION },
+      documentId_style_promptVersion_audience: {
+        documentId: doc.id,
+        style,
+        promptVersion: SUMMARY_PROMPT_VERSION,
+        audience,
+      },
     };
     const content = {
       points: result.points,
@@ -50,7 +60,7 @@ export async function handleSummarise({ aiJobId }: SummariseData) {
     };
     const summary = await prisma.summary.upsert({
       where,
-      create: { documentId: doc.id, style, promptVersion: SUMMARY_PROMPT_VERSION, ...content },
+      create: { documentId: doc.id, style, promptVersion: SUMMARY_PROMPT_VERSION, audience, ...content },
       update: {}, // already there (job ran twice): keep the first one
     });
     await prisma.aiJob.update({

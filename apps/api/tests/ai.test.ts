@@ -93,6 +93,28 @@ describe('POST /api/documents/:id/summaries', () => {
     expect(fake.prompts).toHaveLength(1);
   });
 
+  it('writes for the student\'s level, and keeps a separate cached summary per level', async () => {
+    const { browser, docId } = await userWithDocument();
+    await browser.patch('/api/account/profile', { studyLevel: 'HIGH_SCHOOL', schoolGrade: 9 }).expect(200);
+
+    await ask(browser, docId).expect(202);
+    expect(fake.prompts[0]).toContain('a Grade 9 high school learner');
+    expect(fake.prompts[0]).toContain('everyday examples');
+
+    // Switch to university: the Grade 9 summary isn't shown or reused, and a new one is written.
+    await browser.patch('/api/account/profile', { studyLevel: 'UNIVERSITY' }).expect(200);
+    const list = await browser.agent.get(`/api/documents/${docId}/summaries`).expect(200);
+    expect(list.body.summaries).toHaveLength(0);
+    await ask(browser, docId).expect(202);
+    expect(fake.prompts[1]).toContain('a university undergraduate');
+
+    // Back to Grade 9: the first summary comes straight from the cache.
+    await browser.patch('/api/account/profile', { studyLevel: 'HIGH_SCHOOL', schoolGrade: 9 }).expect(200);
+    const back = await ask(browser, docId).expect(200);
+    expect(back.body.summary.audience).toBe('HIGH_SCHOOL:9');
+    expect(fake.prompts).toHaveLength(2);
+  });
+
   it('records token use on the job', async () => {
     const { browser, docId } = await userWithDocument();
     const res = await ask(browser, docId, 'DETAILED').expect(202);

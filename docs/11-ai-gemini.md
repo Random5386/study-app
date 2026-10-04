@@ -116,10 +116,10 @@ export const summaryOutputSchema = z.object({
 
 One shape for all three styles keeps the code simple: Brief is one paragraph, Detailed is 4–8 paragraphs, Bullet points is 8–15 short sentences. The web app shows `BULLETS` as a list and the others as paragraphs.
 
-### Prompts as versioned files — `prompts/summary.v1.md`
+### Prompts as versioned files — `prompts/summary.v2.md`
 
 ```markdown
-Summarise the study material inside the <document> tags for a university student who is revising for a test.
+Summarise the study material inside the <document> tags. You are writing for {{audience}}
 
 Style: {{style}}
 
@@ -138,7 +138,24 @@ Rules:
 </document>
 ```
 
-Keeping prompts in files means changes show up in Git diffs. The version (`summary.v1`) is saved with each summary, so improving the prompt (`summary.v2`) automatically bypasses old cached results.
+Keeping prompts in files means changes show up in Git diffs. The version is saved with each summary, so a new prompt version automatically bypasses old cached results. That happened for real: `summary.v1` was written for "a university student"; `summary.v2` adds the `{{audience}}` placeholder for study levels (next section). `summary.v1.md` stays in the repo as history.
+
+### Matching the study level — `ai/audience.ts`
+
+Students pick a study level at sign-up (and can change it in Settings → Profile): **High school** (with an optional grade, 8 to 12), **College or TVET**, **University** or **Postgraduate**. The summary prompt's `{{audience}}` is filled from that:
+
+```ts
+audienceDescription('HIGH_SCHOOL', 9);
+// "a Grade 9 high school learner in South Africa. Use simple, clear language and short sentences.
+//  Explain every technical word the first time you use it, and use everyday examples where they help."
+audienceDescription('POSTGRAD', null);
+// "a postgraduate student with a strong background in the field. Be concise and technical, and point out
+//  assumptions, limitations and open questions."
+```
+
+The level also becomes part of the **cache key**. `Summary` has an `audience` column (`"HIGH_SCHOOL:9"`, `"UNIVERSITY"`...) in its unique index, so a Grade 9 summary is never shown to a university student. If you change your level, your old summaries are kept, and they come back (free, from the cache) if you change back. A test checks exactly that.
+
+The job remembers the level it was asked for (`AiJob.input = { style, audience, studyLevel, schoolGrade }`), so changing your level while a summary is being written doesn't mix things up.
 
 ### Defending against prompt injection
 

@@ -27,6 +27,7 @@ const doc: DocumentDetail = {
 const summary: SummaryDto = {
   id: 's1',
   style: 'BULLETS',
+  audience: 'UNIVERSITY',
   points: ['Cells are the basic unit of life.', 'Mitochondria release energy.'],
   keyTerms: [{ term: 'Mitochondria', definition: 'The part of the cell that releases energy.' }],
   model: 'gemini-test',

@@ -1,6 +1,6 @@
 // Home: a friendly greeting, a snapshot of your library, and what to study next.
 // Calm layout (Notion), playful details (Duolingo): emoji, chunky cards, friendly copy.
-import type { DocumentSummary } from '@studyapp/shared';
+import { describeLevel, STUDY_LEVEL_INFO, type DocumentSummary } from '@studyapp/shared';
 import { ArrowRight, Sparkles, Upload } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
@@ -11,6 +11,8 @@ import { useMe } from '../auth/useMe';
 import { fileEmoji, formatBytes, timeAgo } from '../library/format';
 import { StatusBadge } from '../library/StatusBadge';
 import { useDocuments, useLibraryStats, useSubjects } from '../library/useLibrary';
+import { useLevelWords } from '../../components/useLevelWords';
+import { ChooseLevelCard } from './ChooseLevelCard';
 import { HealthStatus } from './HealthStatus';
 
 function greeting(hour = new Date().getHours()) {
@@ -86,6 +88,7 @@ export function HomePage() {
   const { data: docs } = useDocuments({});
   const { data: stats } = useLibraryStats();
   const { data: subjects } = useSubjects();
+  const words = useLevelWords();
   const firstName = me?.displayName.split(' ')[0] ?? '';
 
   return (
@@ -94,8 +97,19 @@ export function HomePage() {
         <h1 className="text-3xl font-black sm:text-4xl">
           {greeting()}, {firstName} <span aria-hidden>👋</span>
         </h1>
-        <p className="mt-2 text-lg text-muted">What are we studying today?</p>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-lg text-muted">
+          What are we studying today?
+          {me?.studyLevel && (
+            <Link to="/settings/profile" title="Change your study level" className="rounded-full">
+              <Badge tone="blue">
+                {STUDY_LEVEL_INFO[me.studyLevel].emoji} {describeLevel(me.studyLevel, me.schoolGrade)}
+              </Badge>
+            </Link>
+          )}
+        </p>
       </header>
+
+      {me && !me.studyLevel && <ChooseLevelCard />}
 
       <section aria-label="Your library" className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
@@ -108,7 +122,7 @@ export function HomePage() {
           emoji="🗂️"
           accent="bg-[#f5e8ff] dark:bg-[#2e1a3d]"
           value={subjects?.length ?? '–'}
-          label={subjects?.length === 1 ? 'subject' : 'subjects'}
+          label={subjects?.length === 1 ? words.subject : words.subjects}
         />
         <div className="col-span-2 lg:col-span-1">
           <StatCard

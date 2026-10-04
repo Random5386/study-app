@@ -2,17 +2,24 @@
 // email that's already registered, so nobody can find out who has an account.
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import type { z } from 'zod';
 import { Link } from 'react-router';
 import { PASSWORD_MIN, registerSchema, type RegisterInput } from '@studyapp/shared';
 import { Alert } from '../../components/ui/Alert';
+import { StudyLevelPicker } from '../../components/StudyLevelPicker';
 import { Button } from '../../components/ui/Button';
 import { TextField } from '../../components/ui/TextField';
 import { api, errorMessage } from '../../lib/api';
 import { AuthLayout, linkClass } from './AuthLayout';
 
 export function RegisterPage() {
-  const form = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
+  // The form holds the *input* shape; zodResolver hands handleSubmit the cleaned *output* shape.
+  const form = useForm<z.input<typeof registerSchema>, unknown, RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { schoolGrade: null },
+  });
+  const schoolGrade = useWatch({ control: form.control, name: 'schoolGrade' });
   const register = useMutation({
     mutationFn: (values: RegisterInput) => api.post('/api/auth/register', values),
   });
@@ -79,6 +86,27 @@ export function RegisterPage() {
           error={form.formState.errors.password?.message}
           {...form.register('password')}
         />
+        <Controller
+          control={form.control}
+          name="studyLevel"
+          render={({ field, fieldState }) => (
+            <StudyLevelPicker
+              compact
+              value={{
+                studyLevel: field.value ?? null,
+                schoolGrade: (schoolGrade as number | null | undefined) ?? null,
+              }}
+              onChange={(v) => {
+                field.onChange(v.studyLevel);
+                form.setValue('schoolGrade', v.schoolGrade);
+              }}
+              error={fieldState.error?.message}
+            />
+          )}
+        />
+        <p className="text-xs text-muted">
+          We use this to pitch AI summaries at your level. You can change it later.
+        </p>
         <Button type="submit" loading={register.isPending} size="lg" fullWidth>
           Create account
         </Button>

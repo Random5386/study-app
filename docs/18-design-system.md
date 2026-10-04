@@ -116,18 +116,22 @@ Settings is one route with child routes, so every tab has its own URL (`/setting
 
 | Tab        | What you can do                                                                |
 | ---------- | ------------------------------------------------------------------------------ |
-| Profile    | Change your display name (`PATCH /api/account/profile`)                        |
+| Profile    | Display name and study level (`PATCH /api/account/profile`)                    |
 | Appearance | Light / dark / system theme (saved in this browser)                            |
 | Security   | Two-factor sign-in, password, active sessions, security history (from phase 2) |
 | Your data  | Download everything as JSON, or delete your account                            |
 
 **Why "Your data"?** South Africa's privacy law, **POPIA** (like Europe's GDPR), gives people the right to see the personal information you hold about them and to have it deleted. Both actions need your password (and your MFA code, for deletion), so someone who steals a session cookie can't download or destroy the account. The export leaves out password hashes, the MFA secret and recovery codes. Deletion removes the `User` row and the database **cascades** (`onDelete: Cascade`) to everything they own.
 
-`PATCH /api/account/profile` validates with a Zod schema that lists only `displayName`. Anything else in the body (say `aiDailyQuota: 100000`) is dropped, which prevents **mass assignment**. There's a test for that.
+`PATCH /api/account/profile` validates with a Zod schema that lists only `displayName`, `studyLevel` and `schoolGrade` (a grade sent with a non-school level is dropped). Anything else in the body (say `aiDailyQuota: 100000`) is dropped, which prevents **mass assignment**. There's a test for that.
 
 ### 8. Smaller first load (code splitting)
 
 The library and settings pages load on demand with React Router's `lazy`, and Vite puts libraries in their own `react` and `vendor` files. After a deploy, returning visitors only re-download the small app file.
+
+### 9. Words that match the study level
+
+`levelWords()` in `packages/shared/src/studyLevel.ts` changes a few words to match the student: South African schools say **learner** and **subject**, universities say **module** and **exam**. The `useLevelWords()` hook gives components the right words, so the library says "Modules" for a university student and "Subjects" for a Grade 10 learner. The study level picker (`components/StudyLevelPicker.tsx`) is one component used in three places: sign-up, Settings → Profile, and a "One quick question" card on Home for accounts made before levels existed.
 
 ## Common mistakes
 
