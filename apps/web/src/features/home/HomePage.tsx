@@ -161,7 +161,6 @@ export function HomePage() {
               <h2 className="font-extrabold">Coming soon</h2>
             </div>
             <ul className="mt-2 space-y-1.5 text-sm text-muted">
-              <li>✨ AI summaries of your guides</li>
               <li>🃏 Flashcards with spaced repetition</li>
               <li>🔥 Mini streaks: get cards right in a row</li>
               <li>📝 Notion-style notes</li>

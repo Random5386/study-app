@@ -1,6 +1,6 @@
 // The database, described as code. See docs/05-database-prisma.md.
 // Change it, then run `npm run db:migrate -- --name <what_changed>` from the repo root.
-// Phase 2 added accounts and security; phase 3 adds the study guide library.
+// Phase 2 added accounts and security, phase 3 the study guide library, phase 4 AI summaries.
 // Notes, decks and flashcards come in later phases.
 
 generator client {
@@ -38,6 +38,7 @@ model User {
   subjects      Subject[]
   documents     Document[]
   tags          Tag[]
+  aiJobs        AiJob[]
 }
 
 /// One-time MFA backup codes. Only SHA-256 hashes are stored.
@@ -171,6 +172,9 @@ model Document {
   file          DocumentFile?
   tags          DocumentTag[]
 
+  summaries Summary[]
+  aiJobs    AiJob[]
+
   @@unique([userId, sha256]) // the same file uploaded twice is stored once
   @@index([userId, subjectId])
   @@index([userId, createdAt])
@@ -203,4 +207,62 @@ model DocumentTag {
 
   @@id([documentId, tagId])
   @@index([tagId])
+}
+
+// ---------------------------------------------------------------------------
+// AI features (phase 4). See docs/11-ai-gemini.md.
+// ---------------------------------------------------------------------------
+
+enum SummaryStyle {
+  BRIEF
+  DETAILED
+  BULLETS
+}
+
+/// A saved AI summary. One per document + style + prompt version, so the same request is never paid for twice.
+model Summary {
+  id            String       @id @default(uuid(7)) @db.Uuid
+  documentId    String       @db.Uuid
+  document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  style         SummaryStyle
+  promptVersion String // e.g. "summary.v1"; a new prompt version means a fresh summary
+  points        Json // string[]: paragraphs, or bullet points for the BULLETS style
+  keyTerms      Json // { term, definition }[]
+  model         String // which Gemini model wrote it
+  createdAt     DateTime     @default(now())
+
+  @@unique([documentId, style, promptVersion])
+}
+
+enum AiJobType {
+  SUMMARY
+}
+
+enum AiJobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+/// One AI request. Also the record the daily quota counts.
+model AiJob {
+  id           String      @id @default(uuid(7)) @db.Uuid
+  userId       String      @db.Uuid
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentId   String?     @db.Uuid
+  document     Document?   @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  type         AiJobType
+  status       AiJobStatus @default(QUEUED)
+  input        Json // e.g. { style: "BRIEF" }
+  summaryId    String?     @db.Uuid // the result, for SUMMARY jobs
+  error        String? // a message that is safe to show the user
+  model        String?
+  inputTokens  Int         @default(0)
+  outputTokens Int         @default(0)
+  createdAt    DateTime    @default(now())
+  finishedAt   DateTime?
+
+  @@index([userId, createdAt])
+  @@index([documentId])
 }

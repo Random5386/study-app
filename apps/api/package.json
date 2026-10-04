@@ -19,6 +19,7 @@
     "db:seed": "tsx --conditions=development prisma/seed.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.27.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@studyapp/shared": "0.1.0",

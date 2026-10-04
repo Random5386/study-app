@@ -2,7 +2,7 @@
 
 > Working name. A full-stack TypeScript study platform: upload study guides, get AI summaries, make flashcards (by hand or with AI), review them with spaced repetition, and take Notion-style notes.
 
-**Status:** Phase 3 of 8. Accounts and security (phase 2) and the study guide library (phase 3) are done: upload PDF, Word, text and Markdown study guides, organise them into subjects and tags, and search their text. The app has a "calm + playful" design (a Notion-style layout with Duolingo-style chunky buttons and friendly copy), light and dark themes, and settings under the profile menu, including data export and account deletion. AI summaries arrive in phase 4.
+**Status:** Phase 4 of 8. Done so far: accounts and security (phase 2), the study guide library (phase 3) and **AI summaries with Google Gemini** (phase 4): brief, detailed or bullet-point summaries with key terms, made in a background job, cached, and limited per user. The app has a "calm + playful" design (a Notion-style layout with Duolingo-style chunky buttons and friendly copy), light and dark themes, and settings under the profile menu, including data export and account deletion. Flashcards arrive in phase 5.
 
 ![StudyApp home page: greeting, library stats and recent study guides](docs/images/home.png)
 
@@ -44,7 +44,7 @@ npm install              # installs everything for all three packages
 npm run setup            # creates .env with random secrets
 ```
 
-Open `.env` and paste a free Gemini key after `GEMINI_API_KEY=`. Get one at https://aistudio.google.com/apikey, in a Google project **without** a billing account, so it can never be charged.
+Open `.env` and paste a free Gemini key after `GEMINI_API_KEY=` to turn on AI summaries. Get one at https://aistudio.google.com/apikey, in a Google project **without** a billing account, so it can never be charged. Everything else works without a key.
 
 ```bash
 docker compose up -d     # starts PostgreSQL and Mailpit in the background

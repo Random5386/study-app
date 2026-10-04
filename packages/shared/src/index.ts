@@ -3,3 +3,4 @@
 export * from './health.js';
 export * from './auth.js';
 export * from './library.js';
+export * from './ai.js';

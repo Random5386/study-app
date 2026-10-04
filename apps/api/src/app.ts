@@ -17,6 +17,7 @@ import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { documentsRouter } from './modules/documents/documents.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { subjectsRouter } from './modules/subjects/subjects.routes.js';
+import { aiRouter, documentSummariesRouter } from './modules/summaries/summaries.routes.js';
 
 export type AppOptions = {
   /** 'relaxed' multiplies every rate limit by 1000. Only tests use it. */
@@ -39,7 +40,9 @@ export function createApp(options: AppOptions = {}) {
   app.use('/api/auth', createAuthRouter(limits)); // public: register, login, ...
   app.use('/api/account', requireAuth, createAccountRouter(limits)); // signed-in users only
   app.use('/api/subjects', requireAuth, subjectsRouter);
+  app.use('/api/documents/:id/summaries', requireAuth, documentSummariesRouter);
   app.use('/api/documents', requireAuth, documentsRouter);
+  app.use('/api/ai', requireAuth, aiRouter);
   // Later phases add: /api/notes, /api/decks, /api/study
   app.use('/api', apiNotFound); // unknown /api/... paths → JSON 404
 

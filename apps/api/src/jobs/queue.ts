@@ -7,15 +7,30 @@ import { PgBoss } from 'pg-boss';
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
 import { handleExtractText, markFailed, type ExtractTextData } from './extractText.job.js';
+import { handleSummarise, markSummariseFailed, type SummariseData } from './summarise.job.js';
 
 /** Every job the app knows about, and the data each one carries (ids only, never big payloads). */
 type JobData = {
   'extract-text': ExtractTextData;
+  summarise: SummariseData;
 };
 export type JobName = keyof JobData;
 
-const handlers: { [K in JobName]: (data: JobData[K]) => Promise<void> } = {
-  'extract-text': handleExtractText,
+type Handler<D> = {
+  run: (data: D) => Promise<void>;
+  /** Called once every retry has failed (from the dead-letter queue). */
+  failed: (data: D) => Promise<void>;
+};
+
+const handlers: { [K in JobName]: Handler<JobData[K]> } = {
+  'extract-text': { run: handleExtractText, failed: ({ documentId }) => markFailed(documentId) },
+  summarise: { run: handleSummarise, failed: markSummariseFailed },
+};
+
+// How hard to try. AI calls get a longer delay: free-tier rate limits reset per minute.
+const RETRY: Record<JobName, { retryLimit: number; retryDelay: number }> = {
+  'extract-text': { retryLimit: 2, retryDelay: 10 },
+  summarise: { retryLimit: 3, retryDelay: 20 },
 };
 
 let boss: PgBoss | undefined;
@@ -24,10 +39,12 @@ let inline = false;
 export const jobs = {
   async send<K extends JobName>(name: K, data: JobData[K]): Promise<void> {
     if (inline) {
+      // Tests: no retries, so a failure goes straight to the "every retry failed" handler.
       try {
-        await handlers[name](data);
+        await handlers[name].run(data);
       } catch (err) {
-        logger.error({ err, name }, 'Inline job failed');
+        logger.debug({ err, name }, 'Inline job failed');
+        await handlers[name].failed(data);
       }
       return;
     }
@@ -46,22 +63,22 @@ export async function startJobWorker() {
   boss.on('error', (err) => logger.error({ err }, 'pg-boss error'));
   await boss.start();
 
-  await boss.createQueue('extract-text-failed'); // dead-letter queue: jobs that used up their retries
-  await boss.createQueue('extract-text', {
-    retryLimit: 2,
-    retryDelay: 10,
-    retryBackoff: true,
-    deadLetter: 'extract-text-failed',
-  });
-
-  await boss.work<ExtractTextData>('extract-text', async (batch) => {
-    for (const job of batch) await handlers['extract-text'](job.data);
-  });
-  await boss.work<ExtractTextData>('extract-text-failed', async (batch) => {
-    for (const job of batch) await markFailed(job.data.documentId);
-  });
-
+  for (const name of Object.keys(handlers) as JobName[]) {
+    await registerQueue(boss, name);
+  }
   logger.info('Job worker started');
+}
+
+async function registerQueue<K extends JobName>(boss: PgBoss, name: K) {
+  const handler = handlers[name];
+  await boss.createQueue(`${name}-failed`); // dead-letter queue: jobs that used up their retries
+  await boss.createQueue(name, { ...RETRY[name], retryBackoff: true, deadLetter: `${name}-failed` });
+  await boss.work<JobData[K]>(name, async (batch) => {
+    for (const job of batch) await handler.run(job.data);
+  });
+  await boss.work<JobData[K]>(`${name}-failed`, async (batch) => {
+    for (const job of batch) await handler.failed(job.data);
+  });
 }
 
 export async function stopJobWorker() {

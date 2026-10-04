@@ -143,7 +143,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   SESSION_SECRET: z.string().min(32),
   ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/), // 32 bytes as hex, for AES-256-GCM
-  GEMINI_API_KEY: z.string().min(1),
+  GEMINI_API_KEY: z.string().trim().default(''), // optional: without it, AI buttons explain how to turn AI on
   GEMINI_MODEL: z.string(),
   GEMINI_FALLBACK_MODEL: z.string(),
   SMTP_HOST: z.string(),
@@ -247,4 +247,4 @@ A: It records the exact version of every installed package, so every install —
 
 ## Try it yourself
 
-Delete `GEMINI_API_KEY` from your `.env` and start the API. Read the error. Put it back. Then add a new setting `MAX_UPLOAD_MB` with a default of 5 to the schema and use it in the upload code.
+Delete `SESSION_SECRET` from your `.env` and start the API. Read the error. Put it back. (Deleting `GEMINI_API_KEY` doesn't stop the app: it's optional, and the AI card explains how to add it.) Then add a new setting `MAX_UPLOAD_MB` with a default of 5 to the schema and use it in the upload code.

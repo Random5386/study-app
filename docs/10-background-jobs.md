@@ -1,6 +1,6 @@
 # 10. Background jobs with pg-boss
 
-> **In the real code (phase 3):** see `apps/api/src/jobs/queue.ts`. pg-boss 12 is used; its handlers receive a batch (array) of jobs. Phase 3 has one queue, `extract-text`, with 2 retries and a dead-letter queue that marks the document FAILED. In tests, `useInlineJobs()` runs each job immediately inside the request, so an upload is fully processed when the test's request returns. The AI queues (`summarise`, `generate-flashcards`) arrive in phases 4–5.
+> **In the real code (phase 4):** see `apps/api/src/jobs/queue.ts`. pg-boss 12 is used; its handlers receive a batch (array) of jobs. Each job type has a `run` handler and a `failed` handler, and `registerQueue()` creates the queue plus its own dead-letter queue (`<name>-failed`) in a loop. `extract-text` retries twice (10 s delay); `summarise` retries three times (20 s delay, with backoff), because free-tier rate limits reset per minute. In tests, `useInlineJobs()` runs each job immediately inside the request with no retries: if it throws, the `failed` handler runs straight away, so tests can check the FAILED state. `generate-flashcards` arrives in phase 5.
 
 ## What it is
 

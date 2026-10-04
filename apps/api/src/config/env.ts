@@ -16,7 +16,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   SESSION_SECRET: z.string().min(32, 'must be at least 32 characters (run `npm run setup`)'),
   ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/, 'must be 64 hex characters (run `npm run setup`)'),
-  GEMINI_API_KEY: z.string().min(1, 'paste your free key from https://aistudio.google.com/apikey'),
+  // Optional: without a key the app works, and AI buttons explain how to turn AI on.
+  // Get a free key at https://aistudio.google.com/apikey (from a Google project with no billing account).
+  GEMINI_API_KEY: z.string().trim().default(''),
   GEMINI_MODEL: z.string().min(1),
   GEMINI_FALLBACK_MODEL: z.string().min(1),
   AI_DAILY_QUOTA: z.coerce.number().int().positive().default(20),

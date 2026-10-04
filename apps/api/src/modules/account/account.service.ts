@@ -56,6 +56,9 @@ export const accountService = {
             createdAt: true,
             subject: { select: { name: true } },
             tags: { select: { tag: { select: { name: true } } } },
+            summaries: {
+              select: { style: true, points: true, keyTerms: true, model: true, createdAt: true },
+            },
           },
         },
         auditLogs: {

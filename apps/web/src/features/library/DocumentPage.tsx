@@ -1,15 +1,15 @@
 // One study guide: rename it, file it in a subject, tag it, read its text, download or delete it.
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { Download, Sparkles, Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { Alert } from '../../components/ui/Alert';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { buttonClass } from '../../components/ui/buttonClass';
-import { Card, IconTile } from '../../components/ui/Card';
 import { ApiError, errorMessage } from '../../lib/api';
 import { fileEmoji, fileKind, formatBytes, formatDate } from './format';
 import { StatusBadge } from './StatusBadge';
+import { SummaryPanel } from './SummaryPanel';
 import {
   useDeleteDocument,
   useDocument,
@@ -197,15 +197,7 @@ export function DocumentPage() {
       )}
       {d.status === 'PROCESSING' && <Alert tone="info">Reading the text of this file…</Alert>}
 
-      <Card
-        icon={<IconTile className="bg-[#f5e8ff] text-grape dark:bg-[#2e1a3d]">✨</IconTile>}
-        title="AI summary"
-        description="Key points, definitions and likely exam questions. Arrives in phase 4, with AI flashcards in phase 5."
-      >
-        <Button variant="secondary" disabled>
-          <Sparkles aria-hidden className="size-4" /> Summarise (coming soon)
-        </Button>
-      </Card>
+      <SummaryPanel documentId={d.id} ready={d.status === 'READY'} />
 
       {d.textPreview && (
         <section>
