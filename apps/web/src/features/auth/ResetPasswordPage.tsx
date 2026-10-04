@@ -51,7 +51,7 @@ export function ResetPasswordPage() {
             error={form.formState.errors.confirm?.message}
             {...form.register('confirm')}
           />
-          <Button type="submit" loading={reset.isPending} disabled={!token} className="w-full">
+          <Button type="submit" loading={reset.isPending} disabled={!token} size="lg" fullWidth>
             Change password
           </Button>
         </form>

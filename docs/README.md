@@ -35,6 +35,7 @@ StudyApp is a study app: upload study guides, get AI summaries, make flashcards 
 | 15  | [15-testing.md](15-testing.md)                                 | Unit, API, component and end-to-end tests                                              |
 | 16  | [16-git-ci-running.md](16-git-ci-running.md)                   | Git workflow, GitHub Actions, running it locally (and deploying later)                 |
 | 17  | [17-interview-prep.md](17-interview-prep.md)                   | Your project pitch, CV bullets and practice questions                                  |
+| 18  | [18-design-system.md](18-design-system.md)                     | Design tokens, dark mode, accessible colours, the profile menu and settings            |
 | —   | [glossary.md](glossary.md)                                     | Every term in this guide, in one place                                                 |
 
 ## How every page is laid out

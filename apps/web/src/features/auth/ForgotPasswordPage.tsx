@@ -31,7 +31,7 @@ export function ForgotPasswordPage() {
             error={form.formState.errors.email?.message}
             {...form.register('email')}
           />
-          <Button type="submit" loading={send.isPending} className="w-full">
+          <Button type="submit" loading={send.isPending} size="lg" fullWidth>
             Send reset link
           </Button>
         </form>

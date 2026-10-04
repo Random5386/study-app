@@ -18,6 +18,7 @@ export function LoginPage() {
   const queryClient = useQueryClient();
   const from = (location.state as { from?: string } | null)?.from ?? '/';
   const [resent, setResent] = useState(false);
+  const accountDeleted = Boolean((location.state as { accountDeleted?: boolean } | null)?.accountDeleted);
 
   // The same Zod schema the API uses, so the rules can't drift apart.
   const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
@@ -49,7 +50,7 @@ export function LoginPage() {
       title="Sign in"
       subtitle={
         <>
-          New here?{' '}
+          Welcome back! New here?{' '}
           <Link to="/register" className={linkClass}>
             Create an account
           </Link>
@@ -71,6 +72,9 @@ export function LoginPage() {
           </Alert>
         )}
         {resent && <Alert tone="success">A new confirmation link is on its way.</Alert>}
+        {accountDeleted && !login.isError && (
+          <Alert tone="success">Your account has been deleted. Thanks for studying with us. 👋</Alert>
+        )}
 
         <TextField
           label="Email"
@@ -86,7 +90,7 @@ export function LoginPage() {
           error={form.formState.errors.password?.message}
           {...form.register('password')}
         />
-        <Button type="submit" loading={login.isPending} className="w-full">
+        <Button type="submit" loading={login.isPending} size="lg" fullWidth>
           Sign in
         </Button>
         <p className="text-center text-sm">

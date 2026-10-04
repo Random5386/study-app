@@ -39,13 +39,15 @@ export function SecurityHistoryCard() {
       {history.isPending && <p className="text-sm">Loading…</p>}
       {history.isError && <Alert tone="error">{errorMessage(history.error)}</Alert>}
       {history.data && (
-        <ul className="divide-y divide-slate-200 text-sm dark:divide-slate-800">
+        <ul className="divide-y divide-line text-sm">
           {history.data.map((e) => (
             <li key={e.id} className="flex justify-between gap-4 py-2">
-              <span className={WARNING_EVENTS.has(e.event) ? 'text-amber-700 dark:text-amber-400' : ''}>
+              <span
+                className={WARNING_EVENTS.has(e.event) ? 'font-medium text-[#b35c00] dark:text-fire' : ''}
+              >
                 {EVENT_TEXT[e.event] ?? e.event}
               </span>
-              <span className="text-right text-slate-500 dark:text-slate-400">
+              <span className="text-right text-muted">
                 {formatDateTime(e.createdAt)}
                 <br />
                 <span className="text-xs">

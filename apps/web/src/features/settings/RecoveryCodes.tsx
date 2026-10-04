@@ -27,7 +27,7 @@ export function RecoveryCodes({ codes, onDone }: { codes: string[]; onDone: () =
         Save these recovery codes somewhere safe. If you lose your phone, each code lets you sign in once.
         This is the only time they are shown.
       </Alert>
-      <ul className="grid grid-cols-2 gap-2 rounded-md bg-slate-100 p-4 font-mono text-sm dark:bg-slate-800">
+      <ul className="grid grid-cols-2 gap-2 rounded-xl border-2 border-line bg-raised p-4 font-mono text-sm">
         {codes.map((code) => (
           <li key={code}>{code}</li>
         ))}

@@ -46,6 +46,15 @@ export const emails = {
         `\n\nIf this wasn't you, reset your password now: ${env.APP_URL}/forgot-password${signOff}`,
     }),
 
+  accountDeleted: (to: string, name: string) =>
+    sendMail({
+      to,
+      subject: `Your ${env.APP_NAME} account was deleted`,
+      text:
+        `Hi ${name},\n\nYour account and study guides have been permanently deleted, as you asked.` +
+        `\n\nThanks for studying with us.${signOff}`,
+    }),
+
   mfaChanged: (to: string, name: string, enabled: boolean) =>
     sendMail({
       to,

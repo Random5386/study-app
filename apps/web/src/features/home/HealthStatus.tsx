@@ -32,9 +32,9 @@ export function HealthStatus() {
 
 type Tone = 'good' | 'bad' | 'neutral';
 const DOT: Record<Tone, string> = {
-  good: 'bg-emerald-500',
-  bad: 'bg-red-500',
-  neutral: 'bg-slate-400',
+  good: 'bg-brand-500',
+  bad: 'bg-coral',
+  neutral: 'bg-line-strong',
 };
 
 function StatusRow({ tone, label }: { tone: Tone; label: string }) {

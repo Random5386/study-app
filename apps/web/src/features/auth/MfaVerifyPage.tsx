@@ -51,7 +51,7 @@ export function MfaVerifyPage() {
           error={form.formState.errors.code?.message}
           {...form.register('code')}
         />
-        <Button type="submit" loading={verify.isPending} className="w-full">
+        <Button type="submit" loading={verify.isPending} size="lg" fullWidth>
           Verify
         </Button>
         <button type="button" className={`${linkClass} text-sm`} onClick={() => setUseRecovery((v) => !v)}>

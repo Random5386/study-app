@@ -7,9 +7,11 @@ export function RequireAuth() {
   const { data: me, isPending, isError } = useMe();
   const location = useLocation();
 
-  if (isPending) return <p className="p-8 text-sm text-slate-500">Loading…</p>;
+  if (isPending) return <p className="grid min-h-screen place-items-center text-sm text-muted">Loading…</p>;
   if (isError)
-    return <p className="p-8 text-sm text-red-600">Could not reach the server. Is `npm run dev` running?</p>;
+    return (
+      <p className="p-8 text-sm text-danger-600">Could not reach the server. Is `npm run dev` running?</p>
+    );
   if (!me) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   return <Outlet />;
 }

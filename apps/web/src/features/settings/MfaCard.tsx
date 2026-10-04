@@ -88,7 +88,7 @@ export function MfaCard() {
         <div className="space-y-3">
           <p className="text-sm">
             Status:{' '}
-            <strong className={enabled ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+            <strong className={enabled ? 'text-brand-600 dark:text-brand-400' : ''}>
               {enabled ? 'On' : 'Off'}
             </strong>
             {enabled && ` · ${status.data.recoveryCodesLeft} recovery codes left`}
@@ -146,9 +146,9 @@ export function MfaCard() {
           <img
             src={setup.qrCodeDataUrl}
             alt="QR code for your authenticator app"
-            className="size-44 rounded bg-white p-1"
+            className="size-44 rounded-xl border-2 border-line bg-white p-2"
           />
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-muted">
             Key: <code className="font-mono break-all">{setup.manualKey}</code>
           </p>
           {confirm.isError && <Alert tone="error">{errorMessage(confirm.error)}</Alert>}

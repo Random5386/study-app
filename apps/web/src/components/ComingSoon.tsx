@@ -1,11 +1,24 @@
-type ComingSoonProps = { title: string; phase: number };
+// Placeholder for pages that later phases will build. Friendly, and says what's coming.
+import { Link } from 'react-router';
+import { buttonClass } from './ui/buttonClass';
+import { PageHeader } from './ui/PageHeader';
 
-/** Placeholder for pages that later phases will build. */
-export function ComingSoon({ title, phase }: ComingSoonProps) {
+type ComingSoonProps = { title: string; phase: number; emoji: string; teaser: string };
+
+export function ComingSoon({ title, phase, emoji, teaser }: ComingSoonProps) {
   return (
     <section>
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="mt-2 text-slate-600 dark:text-slate-400">Coming in phase {phase} of the build roadmap.</p>
+      <PageHeader emoji={emoji} title={title} description={teaser} />
+      <div className="rounded-2xl border-2 border-dashed border-line-strong p-8 text-center">
+        <p className="font-display text-xl font-black">Under construction 🚧</p>
+        <p className="mx-auto mt-2 max-w-md text-muted">
+          This part of the app arrives in phase {phase} of the build roadmap. Meanwhile, you can upload and
+          organise your study guides.
+        </p>
+        <Link to="/documents" className={buttonClass('primary', 'md', 'mt-5')}>
+          Go to study guides
+        </Link>
+      </div>
     </section>
   );
 }

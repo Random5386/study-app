@@ -1,6 +1,12 @@
 // Security settings for a signed-in user: password, active sessions, security history.
 import type { Request } from 'express';
-import type { ActiveSession, AuditEntry, ChangePasswordInput } from '@studyapp/shared';
+import type {
+  ActiveSession,
+  AuditEntry,
+  ChangePasswordInput,
+  DeleteAccountInput,
+  UpdateProfileInput,
+} from '@studyapp/shared';
 import { prisma } from '../../db/prisma.js';
 import type { User } from '../../generated/prisma/client.js';
 import { audit } from '../../lib/audit.js';
@@ -8,6 +14,7 @@ import { HttpError } from '../../lib/httpError.js';
 import { hashPassword, verifyPassword } from '../../lib/passwords.js';
 import { assertPasswordNotBreached, signOutEverywhere } from '../auth/auth.service.js';
 import { emails } from '../auth/emails.js';
+import { mfaService } from './mfa.service.js';
 
 /** Security changes need fresh proof: the current password. */
 export async function confirmPassword(user: User, password: string) {
@@ -17,6 +24,72 @@ export async function confirmPassword(user: User, password: string) {
 }
 
 export const accountService = {
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    return prisma.user.update({ where: { id: userId }, data: input });
+  },
+
+  /**
+   * Everything we store about you, as JSON (POPIA section 23: access to personal information).
+   * Secrets (password hash, MFA secret, recovery codes) stay out: they are useless to you and
+   * dangerous in a downloads folder. Uploaded files are listed, not embedded; download them one by one.
+   */
+  async exportData(userId: string) {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: {
+        email: true,
+        displayName: true,
+        emailVerifiedAt: true,
+        mfaEnabledAt: true,
+        createdAt: true,
+        subjects: { select: { name: true, colour: true, createdAt: true }, orderBy: { position: 'asc' } },
+        documents: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            title: true,
+            originalName: true,
+            mimeType: true,
+            sizeBytes: true,
+            status: true,
+            pageCount: true,
+            wordCount: true,
+            createdAt: true,
+            subject: { select: { name: true } },
+            tags: { select: { tag: { select: { name: true } } } },
+          },
+        },
+        auditLogs: {
+          select: { event: true, ipAddress: true, userAgent: true, createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+    return {
+      exportedAt: new Date().toISOString(),
+      ...user,
+      documents: user.documents.map(({ subject, tags, ...d }) => ({
+        ...d,
+        subject: subject?.name ?? null,
+        tags: tags.map((t) => t.tag.name),
+      })),
+    };
+  },
+
+  /** Deletes the user row; the database cascades to everything they own. There is no undo. */
+  async deleteAccount(user: User, input: DeleteAccountInput) {
+    await confirmPassword(user, input.password);
+    if (user.mfaEnabledAt) {
+      if (!input.code) throw new HttpError(400, 'Enter a code from your authenticator app');
+      if (!(await mfaService.verifyCode(user, input.code))) {
+        await audit(user.id, 'MFA_FAILED');
+        throw new HttpError(401, 'That code is not right');
+      }
+    }
+    await signOutEverywhere(user.id); // removes every session row, including this one
+    await prisma.user.delete({ where: { id: user.id } });
+    await emails.accountDeleted(user.email, user.displayName);
+  },
+
   async changePassword(user: User, input: ChangePasswordInput, req: Request) {
     await confirmPassword(user, input.currentPassword);
     if (input.currentPassword === input.newPassword) {

@@ -2,18 +2,11 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { signedInFakes, testUser } from '../../test/fixtures';
 import { mockApi, renderApp } from '../../test/renderApp';
 
-const user = {
-  id: '0192f3a0-0000-7000-8000-000000000001',
-  email: 'ada@test.dev',
-  displayName: 'Ada',
-  emailVerified: true,
-  mfaEnabled: true,
-  createdAt: new Date().toISOString(),
-};
+const user = testUser;
 const signedOut = { status: 200, body: { user: null, mfaPending: false } };
-const health = { ok: true, app: 'StudyApp', database: 'up', time: new Date().toISOString() };
 
 describe('protected pages', () => {
   it('sends signed-out visitors to the sign-in page', async () => {
@@ -38,6 +31,7 @@ describe('sign-in form', () => {
   it('signs in with password + MFA code and sends the CSRF token', async () => {
     let signedIn = false;
     const calls = mockApi({
+      ...signedInFakes(),
       'GET /api/auth/session': () =>
         signedIn ? { status: 200, body: { user, mfaPending: false } } : signedOut,
       'GET /api/auth/csrf': { status: 200, body: { csrfToken: 'token-before-login' } },
@@ -46,7 +40,6 @@ describe('sign-in form', () => {
         signedIn = true;
         return { status: 200, body: { mfaRequired: false, csrfToken: 'token-after-mfa', user } };
       },
-      'GET /api/health': { status: 200, body: health },
     });
     const { router } = renderApp('/login');
 
@@ -57,7 +50,9 @@ describe('sign-in form', () => {
     await userEvent.type(await screen.findByLabelText('Code'), '123456');
     await userEvent.click(screen.getByRole('button', { name: 'Verify' }));
 
-    expect(await screen.findByRole('heading', { name: 'Welcome, Ada' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /^Good (morning|afternoon|evening), Ada$/ }),
+    ).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/');
 
     const login = calls.find((c) => c.path === '/api/auth/login');

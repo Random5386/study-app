@@ -1,19 +1,58 @@
+// A rounded panel. `tone="danger"` is for destructive settings (delete account).
 import type { ReactNode } from 'react';
+
+type CardProps = {
+  title?: string;
+  description?: ReactNode;
+  icon?: ReactNode;
+  actions?: ReactNode;
+  tone?: 'default' | 'danger';
+  className?: string;
+  children?: ReactNode;
+};
 
 export function Card({
   title,
   description,
+  icon,
+  actions,
+  tone = 'default',
+  className = '',
   children,
+}: CardProps) {
+  const border = tone === 'danger' ? 'border-danger-600/40' : 'border-line';
+  return (
+    <section className={`rounded-2xl border-2 bg-surface p-5 sm:p-6 ${border} ${className}`}>
+      {(title || description || actions) && (
+        <header className="flex items-start gap-3">
+          {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
+          <div className="min-w-0 flex-1">
+            {title && (
+              <h2 className={`text-lg font-extrabold ${tone === 'danger' ? 'text-danger-600' : ''}`}>
+                {title}
+              </h2>
+            )}
+            {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+          </div>
+          {actions && <div className="shrink-0">{actions}</div>}
+        </header>
+      )}
+      {children && <div className={title || description ? 'mt-5' : ''}>{children}</div>}
+    </section>
+  );
+}
+
+/** A small rounded square holding an icon or emoji, used beside card titles and stats. */
+export function IconTile({
+  children,
+  className = 'bg-brand-100 text-brand-700',
 }: {
-  title?: string;
-  description?: ReactNode;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-      {title && <h2 className="font-semibold">{title}</h2>}
-      {description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{description}</p>}
-      <div className={title || description ? 'mt-4' : ''}>{children}</div>
-    </section>
+    <span aria-hidden className={`grid size-10 place-items-center rounded-xl text-xl ${className}`}>
+      {children}
+    </span>
   );
 }

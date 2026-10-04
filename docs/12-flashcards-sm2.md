@@ -25,7 +25,7 @@ Alternative: **FSRS**, the newer algorithm Anki now offers — more accurate but
 ```
 apps/api/src/lib/sm2.ts                 # the algorithm (pure)
 apps/api/src/lib/sm2.test.ts            # its unit tests
-apps/api/src/modules/study/study.service.ts   # due cards, saving reviews, streaks
+apps/api/src/modules/study/study.service.ts   # due cards, saving reviews
 apps/web/src/features/study/StudySession.tsx  # the flip-card UI
 ```
 
@@ -124,7 +124,7 @@ describe('SM-2 schedule', () => {
     expect(intervals).toEqual([1, 6, 15, 38]);
   });
 
-  it('Again resets the streak but keeps the ease factor', () => {
+  it('Again resets the repetitions but keeps the ease factor', () => {
     const learned = { easeFactor: 2.6, intervalDays: 15, repetitions: 3 };
     const next = schedule(learned, 'again', now);
     expect(next).toMatchObject({ repetitions: 0, intervalDays: 1, easeFactor: 2.6 });
@@ -180,7 +180,23 @@ export const studyService = {
 };
 ```
 
-**Study streak:** count consecutive days, going back from today, that have at least one `CardReview` — a simple query grouped by date, shown on the dashboard.
+**Mini streak (combo):** during a review session, the app counts how many cards you answered correctly **in a row**: "🔥 5 in a row!". _Hard_, _Good_ and _Easy_ all count as correct (in SM-2 terms, quality 3 or more is a successful recall); _Again_ resets it to 0. The best combo of the session is shown on the summary screen at the end. It is deliberately small and friendly: nothing is saved across days, so there's no daily pressure and no streak to "lose" overnight.
+
+Because it only lives for one session, it's plain React state, not a database table. The rule itself is a pure function, so it gets unit tests like SM-2 does:
+
+```ts
+// apps/web/src/features/study/combo.ts
+export type Combo = { current: number; best: number };
+export const START: Combo = { current: 0, best: 0 };
+
+export function nextCombo(combo: Combo, rating: Rating): Combo {
+  const current = rating === 'again' ? 0 : combo.current + 1;
+  return { current, best: Math.max(combo.best, current) };
+}
+
+/** A little celebration at 5, 10, 15 ... in a row. */
+export const isMilestone = (combo: Combo) => combo.current > 0 && combo.current % 5 === 0;
+```
 
 **In the UI:** the session shows the front, Space flips the card, keys 1–4 pick Again/Hard/Good/Easy. Cards rated _Again_ are also put back at the end of the current session, so you see them again before you finish.
 

@@ -28,14 +28,28 @@ export const SUBJECT_DOT: Record<SubjectColour, string> = {
   slate: 'bg-slate-500',
 };
 
-export const STATUS_STYLE: Record<DocumentStatus, { label: string; className: string }> = {
-  PROCESSING: {
-    label: 'Processing…',
-    className: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
-  },
-  READY: {
-    label: 'Ready',
-    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-  },
-  FAILED: { label: 'Failed', className: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' },
+export const STATUS_STYLE: Record<DocumentStatus, { label: string; tone: 'orange' | 'green' | 'red' }> = {
+  PROCESSING: { label: 'Processing…', tone: 'orange' },
+  READY: { label: 'Ready', tone: 'green' },
+  FAILED: { label: 'Failed', tone: 'red' },
 };
+
+/** An emoji for each file type, used as the document's "page icon" (Notion style). */
+export function fileEmoji(mimeType: string): string {
+  if (mimeType === 'application/pdf') return '📕';
+  if (mimeType.includes('wordprocessingml')) return '📘';
+  if (mimeType === 'text/markdown') return '📗';
+  return '📄';
+}
+
+/** "just now", "5 min ago", "3 days ago", then a date. */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const minutes = Math.round((now - new Date(iso).getTime()) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return days === 1 ? 'yesterday' : `${days} days ago`;
+  return formatDate(iso);
+}

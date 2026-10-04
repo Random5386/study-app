@@ -2,15 +2,28 @@
 
 > Working name. A full-stack TypeScript study platform: upload study guides, get AI summaries, make flashcards (by hand or with AI), review them with spaced repetition, and take Notion-style notes.
 
-**Status:** Phase 3 of 8. Accounts and security (phase 2) and the study guide library (phase 3) are done: upload PDF, Word, text and Markdown study guides, organise them into subjects and tags, and search their text. AI summaries arrive in phase 4.
+**Status:** Phase 3 of 8. Accounts and security (phase 2) and the study guide library (phase 3) are done: upload PDF, Word, text and Markdown study guides, organise them into subjects and tags, and search their text. The app has a "calm + playful" design (a Notion-style layout with Duolingo-style chunky buttons and friendly copy), light and dark themes, and settings under the profile menu, including data export and account deletion. AI summaries arrive in phase 4.
 
-| Layer     | Technology                                                                 |
-| --------- | -------------------------------------------------------------------------- |
-| Front end | React 19, Vite, TypeScript, Tailwind CSS, TanStack Query, React Router     |
-| Back end  | Node.js 24, Express 5, TypeScript, Zod                                     |
-| Database  | PostgreSQL 17 through Prisma ORM 7                                         |
-| AI        | Google Gemini (free tier), server-side only                                |
-| Quality   | Vitest, Supertest, React Testing Library, ESLint, Prettier, GitHub Actions |
+![StudyApp home page: greeting, library stats and recent study guides](docs/images/home.png)
+
+<details>
+<summary>More screenshots</summary>
+
+| Dark mode                                            | Study guide library                 |
+| ---------------------------------------------------- | ----------------------------------- |
+| ![Home page in dark mode](docs/images/home-dark.png) | ![Library](docs/images/library.png) |
+| **Settings → Profile**                               | **Sign in**                         |
+| ![Settings](docs/images/settings.png)                | ![Sign in](docs/images/sign-in.png) |
+
+</details>
+
+| Layer     | Technology                                                                       |
+| --------- | -------------------------------------------------------------------------------- |
+| Front end | React 19, Vite, TypeScript, Tailwind CSS, Radix UI, TanStack Query, React Router |
+| Back end  | Node.js 24, Express 5, TypeScript, Zod                                           |
+| Database  | PostgreSQL 17 through Prisma ORM 7                                               |
+| AI        | Google Gemini (free tier), server-side only                                      |
+| Quality   | Vitest, Supertest, React Testing Library, ESLint, Prettier, GitHub Actions       |
 
 Everything runs locally with free tools. The only online service is the Gemini API, on its free tier.
 

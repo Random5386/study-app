@@ -1,23 +1,36 @@
 import type { ReactNode } from 'react';
+import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react';
 
 type Tone = 'error' | 'success' | 'info' | 'warning';
 
-const TONES: Record<Tone, string> = {
-  error: 'border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200',
-  success:
-    'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200',
-  info: 'border-indigo-300 bg-indigo-50 text-indigo-800 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-200',
-  warning:
-    'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200',
+const TONES: Record<Tone, { box: string; Icon: typeof Info }> = {
+  error: {
+    box: 'border-danger-600/30 bg-[#fff0f0] text-[#9b1c1c] dark:bg-[#3a1d1d] dark:text-[#ffb4b4]',
+    Icon: CircleAlert,
+  },
+  success: {
+    box: 'border-brand-500/40 bg-brand-50 text-brand-700 dark:bg-brand-900/60 dark:text-brand-200',
+    Icon: CircleCheck,
+  },
+  info: {
+    box: 'border-sky/40 bg-[#ebf8ff] text-[#0b5f8a] dark:bg-[#0f2a3a] dark:text-[#a5dcfb]',
+    Icon: Info,
+  },
+  warning: {
+    box: 'border-fire/40 bg-[#fff6e5] text-[#8a4b00] dark:bg-[#3a2a10] dark:text-[#ffd59a]',
+    Icon: TriangleAlert,
+  },
 };
 
 export function Alert({ tone = 'info', children }: { tone?: Tone; children: ReactNode }) {
+  const { box, Icon } = TONES[tone];
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`rounded-md border px-3 py-2 text-sm ${TONES[tone]}`}
+      className={`flex items-start gap-2.5 rounded-xl border-2 px-3.5 py-2.5 text-sm ${box}`}
     >
-      {children}
+      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

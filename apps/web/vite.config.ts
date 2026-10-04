@@ -11,6 +11,20 @@ export default defineConfig({
     // One origin = no CORS, and cookies just work. See docs/01-how-the-web-works.md.
     proxy: { '/api': 'http://localhost:3000' },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Libraries change less often than our code, so they get their own files. After a
+        // deploy, browsers re-download only the small app file and keep the cached libraries.
+        codeSplitting: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/ },
+            { name: 'vendor', test: /node_modules/ },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

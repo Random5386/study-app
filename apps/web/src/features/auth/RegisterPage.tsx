@@ -24,7 +24,7 @@ export function RegisterPage() {
           We sent a confirmation link to <strong>{form.getValues('email')}</strong>. Click it to finish
           creating your account.
         </p>
-        <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-3 text-sm text-muted">
           Running locally? Emails appear in Mailpit at{' '}
           <a href="http://localhost:8025" target="_blank" rel="noreferrer" className={linkClass}>
             localhost:8025
@@ -79,7 +79,7 @@ export function RegisterPage() {
           error={form.formState.errors.password?.message}
           {...form.register('password')}
         />
-        <Button type="submit" loading={register.isPending} className="w-full">
+        <Button type="submit" loading={register.isPending} size="lg" fullWidth>
           Create account
         </Button>
       </form>

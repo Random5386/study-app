@@ -80,6 +80,18 @@ export const mfaDisableSchema = z.object({
 });
 export type MfaDisableInput = z.infer<typeof mfaDisableSchema>;
 
+/** Settings → Profile. Only these fields can be changed here (anything else in the body is dropped). */
+export const updateProfileSchema = z.object({ displayName: displayNameSchema });
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/** Deleting your account needs your password, a typed confirmation, and your MFA code if it's on. */
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Enter your password').max(PASSWORD_MAX),
+  confirm: z.literal('DELETE', 'Type DELETE to confirm'),
+  code: mfaCodeSchema.optional(),
+});
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+
 // ---- Shapes the API sends back ----
 
 /** Safe-to-share account details. Never includes hashes or secrets. */

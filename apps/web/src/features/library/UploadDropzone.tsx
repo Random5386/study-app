@@ -1,6 +1,7 @@
 // Drag files here, or click to choose. Files upload one at a time, each with its own status line.
 import { useRef, useState, type DragEvent } from 'react';
 import { ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES } from '@studyapp/shared';
+import { Button } from '../../components/ui/Button';
 import { errorMessage } from '../../lib/api';
 import { formatBytes } from './format';
 import { useUploadDocument } from './useLibrary';
@@ -56,28 +57,23 @@ export function UploadDropzone({ subjectId }: { subjectId?: string }) {
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`rounded-lg border-2 border-dashed p-6 text-center text-sm transition ${
-          dragging
-            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950'
-            : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900'
+        className={`rounded-2xl border-2 border-dashed px-6 py-7 text-center transition-colors ${
+          dragging ? 'border-sky bg-[#ebf8ff] dark:bg-[#0f2a3a]' : 'border-line-strong bg-raised'
         }`}
       >
-        <p>
-          Drag study guides here, or{' '}
-          <button
-            type="button"
-            className="font-medium text-indigo-600 underline dark:text-indigo-400"
-            onClick={() => inputRef.current?.click()}
-          >
-            choose files
-          </button>
+        <p aria-hidden className={`text-4xl transition-transform ${dragging ? 'scale-125' : ''}`}>
+          📤
         </p>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 font-display text-lg font-black">Drop study guides here</p>
+        <p className="mt-1 text-sm text-muted">
           PDF, Word (.docx), text or Markdown · up to {formatBytes(MAX_UPLOAD_BYTES)} each
         </p>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-          AI features send document text to Google Gemini's free tier, which may use it to improve its
-          products. Don't upload personal or confidential material.
+        <Button variant="secondary" size="sm" className="mt-4" onClick={() => inputRef.current?.click()}>
+          Choose files
+        </Button>
+        <p className="mx-auto mt-4 max-w-lg text-xs text-muted">
+          AI features send document text to Google Gemini&apos;s free tier, which may use it to improve its
+          products. Don&apos;t upload personal or confidential material.
         </p>
         <input
           ref={inputRef}
@@ -94,20 +90,25 @@ export function UploadDropzone({ subjectId }: { subjectId?: string }) {
       </div>
 
       {items.length > 0 && (
-        <ul className="mt-3 space-y-1 text-sm" aria-live="polite">
+        <ul className="mt-3 space-y-1.5 text-sm" aria-live="polite">
           {items.map((it, i) => (
-            <li key={`${it.name}-${i}`} className="flex justify-between gap-4">
+            <li
+              key={`${it.name}-${i}`}
+              className="flex items-center justify-between gap-4 rounded-xl border-2 border-line bg-surface px-3 py-2"
+            >
               <span className="truncate">{it.name}</span>
-              <span
-                className={
-                  it.state === 'error'
-                    ? 'text-red-600 dark:text-red-400'
-                    : it.state === 'uploading'
-                      ? 'text-slate-500'
-                      : 'text-emerald-600 dark:text-emerald-400'
-                }
-              >
-                {it.state === 'uploading' ? 'Uploading…' : it.state === 'done' ? 'Uploaded' : it.message}
+              <span className="flex shrink-0 items-center gap-2">
+                <span
+                  className={
+                    it.state === 'error'
+                      ? 'font-semibold text-danger-600 dark:text-coral'
+                      : it.state === 'uploading'
+                        ? 'text-muted'
+                        : 'font-semibold text-brand-600 dark:text-brand-400'
+                  }
+                >
+                  {it.state === 'uploading' ? 'Uploading…' : it.state === 'done' ? 'Uploaded' : it.message}
+                </span>
               </span>
             </li>
           ))}

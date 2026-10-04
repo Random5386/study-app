@@ -38,19 +38,19 @@ export function SessionsCard() {
         <Alert tone="error">{errorMessage(revokeOne.error ?? revokeOthers.error)}</Alert>
       )}
       {sessions.data && (
-        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="divide-y divide-line">
           {sessions.data.map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-4 py-3 text-sm">
               <div>
                 <p className="font-medium">
                   {describeDevice(s.userAgent)}
                   {s.current && (
-                    <span className="ml-2 rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-900 dark:text-brand-200">
                       This device
                     </span>
                   )}
                 </p>
-                <p className="text-slate-500 dark:text-slate-400">
+                <p className="text-muted">
                   {s.ipAddress ?? 'Unknown IP'} · last active {formatDateTime(s.lastSeenAt)}
                 </p>
               </div>

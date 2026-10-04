@@ -1,20 +1,23 @@
-// Security settings for the signed-in user: /api/account/...
+// Settings for the signed-in user: /api/account/... (profile, security, your data)
 // Every route here sits behind requireAuth (see app.ts).
 import { Router } from 'express';
 import { z } from 'zod';
 import {
   changePasswordSchema,
+  deleteAccountSchema,
   mfaDisableSchema,
   mfaVerifySchema,
   passwordConfirmSchema,
+  updateProfileSchema,
   type RecoveryCodesResponse,
 } from '@studyapp/shared';
 import { audit } from '../../lib/audit.js';
 import { HttpError } from '../../lib/httpError.js';
 import type { RateLimiters } from '../../middleware/rateLimits.js';
 import { currentUserId } from '../../middleware/requireAuth.js';
+import { SESSION_COOKIE, destroySession } from '../../middleware/session.js';
 import { validateBody } from '../../middleware/validate.js';
-import { authService } from '../auth/auth.service.js';
+import { authService, toPublicUser } from '../auth/auth.service.js';
 import { emails } from '../auth/emails.js';
 import { accountService, confirmPassword } from './account.service.js';
 import { mfaService } from './mfa.service.js';
@@ -24,6 +27,27 @@ const idParams = z.object({ id: z.uuid() });
 export function createAccountRouter(limits: RateLimiters) {
   const router = Router();
   const me = (req: Parameters<typeof currentUserId>[0]) => authService.getUser(currentUserId(req));
+
+  // ---- Profile and preferences ----
+  router.patch('/profile', validateBody(updateProfileSchema), async (req, res) => {
+    res.json(toPublicUser(await accountService.updateProfile(currentUserId(req), req.body)));
+  });
+
+  // ---- Your data (POPIA: you can take a copy, or delete everything) ----
+  // POST, not GET: it needs your password, so a stolen session cookie alone can't download everything.
+  router.post('/export', limits.passwordConfirm, validateBody(passwordConfirmSchema), async (req, res) => {
+    const user = await me(req);
+    await confirmPassword(user, req.body.password);
+    const data = await accountService.exportData(user.id);
+    const day = new Date().toISOString().slice(0, 10);
+    res.attachment(`studyapp-export-${day}.json`).json(data);
+  });
+
+  router.delete('/', limits.passwordConfirm, validateBody(deleteAccountSchema), async (req, res) => {
+    await accountService.deleteAccount(await me(req), req.body);
+    await destroySession(req);
+    res.clearCookie(SESSION_COOKIE).json({ message: 'Your account and everything in it has been deleted.' });
+  });
 
   // ---- Password ----
   router.post('/password', limits.passwordConfirm, validateBody(changePasswordSchema), async (req, res) => {

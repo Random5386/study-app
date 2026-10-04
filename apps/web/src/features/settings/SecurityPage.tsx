@@ -6,12 +6,12 @@ import { SessionsCard } from './SessionsCard';
 
 export function SecurityPage() {
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Security</h1>
+    <>
+      <h2 className="sr-only">Security</h2>
       <MfaCard />
       <ChangePasswordCard />
       <SessionsCard />
       <SecurityHistoryCard />
-    </div>
+    </>
   );
 }

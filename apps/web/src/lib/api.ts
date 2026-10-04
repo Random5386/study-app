@@ -63,7 +63,7 @@ export const api = {
   get: <T>(url: string) => request<T>('GET', url),
   post: <T>(url: string, body?: unknown) => request<T>('POST', url, body ?? {}),
   patch: <T>(url: string, body?: unknown) => request<T>('PATCH', url, body),
-  delete: (url: string) => request<void>('DELETE', url),
+  delete: <T = void>(url: string, body?: unknown) => request<T>('DELETE', url, body),
 };
 
 /** A friendly message for any error thrown by `api`. */
