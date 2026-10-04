@@ -1,5 +1,7 @@
 # 9. File uploads and text extraction
 
+> **In the real code (phase 3):** see `apps/api/src/modules/documents/` and `apps/api/src/lib/fileChecks.ts`. Differences from the snippets below: uploads are **never shown inline** (every download is an attachment, and the app shows the extracted text instead of embedding the PDF), so there's no inline-PDF branch; duplicates are caught by a unique index on `(userId, sha256)`, which also handles two identical uploads at the same moment; and text extraction lives in `textExtraction.ts`, which throws an `ExtractionError` for problems with the file (scanned or password-protected PDFs) so the job marks the document FAILED instead of retrying. Tests: `apps/api/tests/library.test.ts` (with real PDF and DOCX files built in `tests/fixtures.ts`).
+
 ## What it is
 
 Users upload study guides (PDF, DOCX, TXT, MD). StudyApp must:

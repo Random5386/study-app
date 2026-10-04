@@ -11,9 +11,18 @@ export function HomePage() {
       <div>
         <h1 className="text-2xl font-bold">Welcome, {me?.displayName}</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Accounts and security are set up. Study guides arrive in phase 3.
+          Upload your study guides in the library. AI summaries arrive in phase 4.
         </p>
       </div>
+
+      <p>
+        <Link
+          to="/documents"
+          className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Open your library
+        </Link>
+      </p>
 
       {me && !me.mfaEnabled && (
         <Alert tone="info">

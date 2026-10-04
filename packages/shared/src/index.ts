@@ -2,3 +2,4 @@
 // validate data with exactly the same rules (see docs/02-typescript-essentials.md).
 export * from './health.js';
 export * from './auth.js';
+export * from './library.js';

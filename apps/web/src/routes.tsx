@@ -12,6 +12,8 @@ import { PublicOnly, RequireAuth } from './features/auth/RequireAuth';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
 import { VerifyEmailPage } from './features/auth/VerifyEmailPage';
 import { HomePage } from './features/home/HomePage';
+import { DocumentPage } from './features/library/DocumentPage';
+import { LibraryPage } from './features/library/LibraryPage';
 import { SecurityPage } from './features/settings/SecurityPage';
 
 export const routes = [
@@ -34,7 +36,8 @@ export const routes = [
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
-          { path: 'documents', element: <ComingSoon title="Study guides" phase={3} /> },
+          { path: 'documents', element: <LibraryPage /> },
+          { path: 'documents/:id', element: <DocumentPage /> },
           { path: 'notes', element: <ComingSoon title="Notes" phase={6} /> },
           { path: 'decks', element: <ComingSoon title="Flashcards" phase={5} /> },
           { path: 'study', element: <ComingSoon title="Study session" phase={5} /> },

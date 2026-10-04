@@ -1,5 +1,7 @@
 # 10. Background jobs with pg-boss
 
+> **In the real code (phase 3):** see `apps/api/src/jobs/queue.ts`. pg-boss 12 is used; its handlers receive a batch (array) of jobs. Phase 3 has one queue, `extract-text`, with 2 retries and a dead-letter queue that marks the document FAILED. In tests, `useInlineJobs()` runs each job immediately inside the request, so an upload is fully processed when the test's request returns. The AI queues (`summarise`, `generate-flashcards`) arrive in phases 4–5.
+
 ## What it is
 
 Some work is **slow**: extracting text from a 100-page PDF, or waiting 5–20 seconds for Gemini. If the API did that inside the request, the user would stare at a spinner, requests could time out, and the server would hold resources the whole time.

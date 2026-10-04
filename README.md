@@ -2,7 +2,7 @@
 
 > Working name. A full-stack TypeScript study platform: upload study guides, get AI summaries, make flashcards (by hand or with AI), review them with spaced repetition, and take Notion-style notes.
 
-**Status:** Phase 2 of 8. Accounts and security are done: sign-up with email confirmation, sign-in, two-factor sign-in, password reset, active sessions and security history. Study guides arrive in phase 3.
+**Status:** Phase 3 of 8. Accounts and security (phase 2) and the study guide library (phase 3) are done: upload PDF, Word, text and Markdown study guides, organise them into subjects and tags, and search their text. AI summaries arrive in phase 4.
 
 | Layer     | Technology                                                                 |
 | --------- | -------------------------------------------------------------------------- |
@@ -39,7 +39,7 @@ npm run db:migrate       # creates the database tables
 npm run dev              # starts the API (port 3000) and the web app (port 5173)
 ```
 
-Open **http://localhost:5173** and create an account. The confirmation email lands in Mailpit at **http://localhost:8025** (nothing is really sent). Click the link, sign in, then try **Security** in the sidebar to turn on two-factor sign-in with Google or Microsoft Authenticator.
+Open **http://localhost:5173** and create an account. The confirmation email lands in Mailpit at **http://localhost:8025** (nothing is really sent). Click the link, sign in, then open **Study guides** to create a subject and upload a PDF or Word file. Try **Security** in the sidebar to turn on two-factor sign-in with Google or Microsoft Authenticator.
 
 ### Everyday commands
 
@@ -91,4 +91,5 @@ study-app/
 - **CSRF tokens** on every change; **rate limits** and a 15-minute **account lock** after 5 wrong passwords
 - No account enumeration: sign-up and password reset give the same answer whether or not an email exists
 - **Active sessions** page with remote sign-out, and a **security history** of every sign-in and change
-- 40 API tests prove these rules, including that one user can't touch another user's sessions Secrets live only in the git-ignored `.env`. The root `package.json` `overrides` pin two patched sub-dependencies of the Prisma CLI so `npm audit` stays clean. See [docs/08-web-security.md](docs/08-web-security.md).
+- Uploads are checked by their real contents (magic bytes), limited to 5 MB each and 50 MB per user, stored in the database (never a public folder) and always downloaded as attachments
+- 52 API tests prove these rules, including that one user can't touch another user's sessions or documents Secrets live only in the git-ignored `.env`. The root `package.json` `overrides` pin two patched sub-dependencies of the Prisma CLI so `npm audit` stays clean. See [docs/08-web-security.md](docs/08-web-security.md).

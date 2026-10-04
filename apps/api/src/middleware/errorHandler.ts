@@ -1,6 +1,7 @@
 // One place that turns every error into a clean JSON response.
 // Registered LAST in app.ts so it sees errors from every route.
 import type { ErrorRequestHandler, RequestHandler } from 'express';
+import { MulterError } from 'multer';
 import { ZodError } from 'zod';
 import { HttpError } from '../lib/httpError.js';
 import { logger } from '../lib/logger.js';
@@ -18,6 +19,15 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
 
   if (err instanceof ZodError) {
     res.status(400).json({ error: 'Invalid input', details: err.issues });
+    return;
+  }
+
+  // Upload problems spotted by multer (file too big, wrong field name, ...).
+  if (err instanceof MulterError) {
+    const tooBig = err.code === 'LIMIT_FILE_SIZE';
+    res.status(tooBig ? 413 : 400).json({
+      error: tooBig ? 'That file is bigger than 5 MB' : 'Upload one file in the "file" field',
+    });
     return;
   }
 

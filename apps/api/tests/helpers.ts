@@ -5,7 +5,11 @@ import * as OTPAuth from 'otpauth';
 import request from 'supertest';
 import type TestAgent from 'supertest/lib/agent.js';
 import { createApp } from '../src/app.js';
+import { useInlineJobs } from '../src/jobs/queue.js';
 import { testOutbox } from '../src/lib/mailer.js';
+
+// Background jobs run straight away in tests, so an upload is fully processed when the request returns.
+useInlineJobs();
 
 /** The app with very high rate limits, so tests can sign in many times. */
 export const app = createApp({ rateLimits: 'relaxed' });
@@ -17,6 +21,8 @@ export type Browser = {
   csrf: string;
   post: (url: string, body?: object) => request.Test;
   del: (url: string) => request.Test;
+  patch: (url: string, body?: object) => request.Test;
+  upload: (filename: string, content: Buffer | string, subjectId?: string) => request.Test;
 };
 
 /** A fresh "browser" that has fetched its CSRF token. */
@@ -28,6 +34,12 @@ export async function newBrowser(targetApp = app): Promise<Browser> {
     csrf: res.body.csrfToken,
     post: (url, body = {}) => agent.post(url).set('X-CSRF-Token', browser.csrf).send(body),
     del: (url) => agent.delete(url).set('X-CSRF-Token', browser.csrf),
+    patch: (url, body = {}) => agent.patch(url).set('X-CSRF-Token', browser.csrf).send(body),
+    upload: (filename, content, subjectId) => {
+      const req = agent.post('/api/documents').set('X-CSRF-Token', browser.csrf);
+      if (subjectId) req.field('subjectId', subjectId);
+      return req.attach('file', Buffer.from(content), filename);
+    },
   };
   return browser;
 }

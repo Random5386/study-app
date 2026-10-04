@@ -14,7 +14,9 @@ import { requireAuth } from './middleware/requireAuth.js';
 import { sessionMiddleware } from './middleware/session.js';
 import { createAccountRouter } from './modules/account/account.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import { documentsRouter } from './modules/documents/documents.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { subjectsRouter } from './modules/subjects/subjects.routes.js';
 
 export type AppOptions = {
   /** 'relaxed' multiplies every rate limit by 1000. Only tests use it. */
@@ -36,7 +38,9 @@ export function createApp(options: AppOptions = {}) {
   app.use('/api', csrfProtection); // blocks forged POST/PATCH/DELETE requests
   app.use('/api/auth', createAuthRouter(limits)); // public: register, login, ...
   app.use('/api/account', requireAuth, createAccountRouter(limits)); // signed-in users only
-  // Later phases add: /api/notes, /api/documents, /api/decks, /api/study
+  app.use('/api/subjects', requireAuth, subjectsRouter);
+  app.use('/api/documents', requireAuth, documentsRouter);
+  // Later phases add: /api/notes, /api/decks, /api/study
   app.use('/api', apiNotFound); // unknown /api/... paths → JSON 404
 
   // ---- The React app (only after `npm run build`; in development Vite serves it) ----
